@@ -27,7 +27,8 @@ project(Geecxx)
 
 set(TARGET "geecxx")
 
-find_package(Boost 1.53 COMPONENTS regex REQUIRED)
+find_package(Boost 1.53 COMPONENTS regex system REQUIRED)
+find_package(Threads REQUIRED)
 
 # Initialize CXXFLAGS
 set(CMAKE_CXX_FLAGS       "-Wall -Werror -std=c++11")

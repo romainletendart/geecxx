@@ -22,30 +22,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <chrono>
+#ifndef GEECXX_CONNECTION_H
+#define GEECXX_CONNECTION_H
+
+#include <array>
+#include <boost/asio.hpp>
+#include <functional>
 #include <string>
-#include <thread>
 
-#include "connection.h"
-#include "logger.h"
+namespace geecxx {
 
-void readHandler(const std::string& message)
+typedef std::function<void (const std::string&)> ReadHandler;
+
+class Connection
 {
-    LOG_INFO("Read: " + message);
+public:
+    Connection(const std::string& addr, const std::string& port);
+    ~Connection();
+
+    bool open();
+    void close();
+
+    bool isAlive() const;
+
+    void setExternalReadHandler(const ReadHandler& externalReadHandler);
+    void writeMessage(const std::string& message);
+
+    void readHandler(const boost::system::error_code& error, std::size_t);
+
+private:
+    bool connect();
+
+    std::string _addr;
+    std::string _port;
+
+    boost::asio::io_service _ioService;
+    boost::asio::ip::tcp::socket _socket;
+
+    /**
+     * External handler to be called when data are available for reading.
+     */
+    ReadHandler _externalReadHandler;
+
+    std::array<char, 256> _buffer;
+};
+
 }
 
-int main(int argc, char *argv[])
-{
-    LOG_INFO("Starting Geecxx...");
-
-    geecxx::Connection connection("localhost", "6667");
-
-    connection.setExternalReadHandler(readHandler);
-
-    if (!connection.open())
-    {
-        return -1;
-    }
-
-    return 0;
-}
+#endif // GEECXX_CONNECTION_H

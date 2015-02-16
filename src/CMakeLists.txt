@@ -25,11 +25,12 @@ include_directories (${Geecxx_SOURCE_DIR}/src ${Geecxx_BINARY_DIR}/src)
 include_directories(${Boost_INCLUDE_DIR})
 
 set(GEECXX_SRCS main.cpp
+    connection.cpp
     logger.cpp
 )
 
 
 add_executable(${TARGET} ${GEECXX_SRCS})
-target_link_libraries(${TARGET} ${Boost_LIBRARIES})
+target_link_libraries(${TARGET} ${Boost_LIBRARIES}  ${CMAKE_THREAD_LIBS_INIT})
 
 install (TARGETS ${TARGET} DESTINATION bin)
