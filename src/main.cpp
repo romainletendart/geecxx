@@ -26,9 +26,9 @@
 #include <string>
 #include <thread>
 
-#include "connection.h"
+#include "bot.h"
 #include "logger.h"
-
+#include "defines.h"
 void readHandler(const std::string& message)
 {
     LOG_INFO("Read: " + message);
@@ -38,14 +38,13 @@ int main(int argc, char *argv[])
 {
     LOG_INFO("Starting Geecxx...");
 
-    geecxx::Connection connection("localhost", "6667");
+    geecxx::Bot bot;
+    int ret = bot.init(GEECXX_NETWORK, GEECXX_PORT, GEECXX_NICK, GEECXX_CHANNEL);
 
-    connection.setExternalReadHandler(readHandler);
-
-    if (!connection.open())
+    if (ret)
     {
         return -1;
     }
 
-    return 0;
+    bot.run();
 }

@@ -22,6 +22,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <thread>
+
 #include "connection.h"
 
 #include <boost/bind.hpp>
@@ -50,7 +52,7 @@ bool Connection::open()
             boost::asio::placeholders::bytes_transferred));
 
     // This blocking call waits for completion of all asynchronous calls
-    _ioService.run();
+    //_ioService.run();
 
     return true;
 }
@@ -71,6 +73,10 @@ void Connection::setExternalReadHandler(const ReadHandler& externalReadHandler)
     _externalReadHandler = externalReadHandler;
 }
 
+void Connection::setExternalWriteHandler(const WriteHandler& externalWriteHandler)
+{
+    _externalWriteHandler = externalWriteHandler;
+}
 
 void Connection::writeMessage(const std::string& message)
 {
@@ -117,6 +123,19 @@ bool Connection::connect()
 
     LOG_INFO("Connected.");
     return true;
+}
+
+void Connection::run()
+{
+    std::thread writeHandlerThread(_externalWriteHandler);
+    _socket.async_read_some(boost::asio::buffer(_buffer),
+        boost::bind(&Connection::readHandler, this,
+        boost::asio::placeholders::error,
+        boost::asio::placeholders::bytes_transferred
+        )
+    );
+    _ioService.run();
+    writeHandlerThread.join();
 }
 
 }

@@ -33,6 +33,7 @@
 namespace geecxx {
 
 typedef std::function<void (const std::string&)> ReadHandler;
+typedef std::function<void (void)> WriteHandler;
 
 class Connection
 {
@@ -46,9 +47,12 @@ public:
     bool isAlive() const;
 
     void setExternalReadHandler(const ReadHandler& externalReadHandler);
+    void setExternalWriteHandler(const WriteHandler& externalWriteHandler);
     void writeMessage(const std::string& message);
 
     void readHandler(const boost::system::error_code& error, std::size_t);
+
+    void run();
 
 private:
     bool connect();
@@ -63,6 +67,8 @@ private:
      * External handler to be called when data are available for reading.
      */
     ReadHandler _externalReadHandler;
+
+    WriteHandler _externalWriteHandler;
 
     std::array<char, 256> _buffer;
 };

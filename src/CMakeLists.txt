@@ -27,6 +27,7 @@ include_directories(${Boost_INCLUDE_DIR})
 set(GEECXX_SRCS main.cpp
     connection.cpp
     logger.cpp
+    bot.cpp
 )
 
 
