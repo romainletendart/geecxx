@@ -84,7 +84,8 @@ void Bot::_readHandler(const std::string& message)
     std::string command;
     iss >> command;
     char c = 0;
-    while(!iss.eof() && c != ':') {
+    while(!iss.eof() && c != ':')
+    {
         iss >> c;
     }
     if(command == "PING")
