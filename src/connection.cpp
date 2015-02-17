@@ -30,10 +30,13 @@
 
 #include "logger.h"
 
-namespace geecxx {
+namespace geecxx
+{
 
 Connection::Connection(const std::string& addr, const std::string& port)
-    : _addr(addr), _port(port), _socket(_ioService) {}
+    : _addr(addr), _port(port), _socket(_ioService)
+{
+}
 
 Connection::~Connection()
 {

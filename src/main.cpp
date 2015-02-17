@@ -41,8 +41,7 @@ int main(int argc, char *argv[])
     geecxx::Bot bot;
     int ret = bot.init(GEECXX_NETWORK, GEECXX_PORT, GEECXX_NICK, GEECXX_CHANNEL);
 
-    if (ret)
-    {
+    if (ret) {
         return -1;
     }
 

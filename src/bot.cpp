@@ -22,16 +22,14 @@ Bot::~Bot()
 int Bot::init(const std::string& addr, const std::string& port, const std::string& nickname, const std::string& channel)
 {
     _connection = new Connection(addr, port);
-    if(_connection == nullptr)
-    {
+    if(_connection == nullptr) {
         return 1;
     }
     _connection->setExternalReadHandler([this](const std::string& m){
         this->_readHandler(m);
     });
     _connection->setExternalWriteHandler([this]() { _writeHandler(); });
-    if(!_connection->open())
-    {
+    if(!_connection->open()) {
         return 2;
     }
     nick(nickname);
@@ -84,12 +82,10 @@ void Bot::_readHandler(const std::string& message)
     std::string command;
     iss >> command;
     char c = 0;
-    while(!iss.eof() && c != ':')
-    {
+    while(!iss.eof() && c != ':') {
         iss >> c;
     }
-    if(command == "PING")
-    {
+    if(command == "PING") {
         std::string host;
         iss >> host;
         pong(host);
@@ -99,33 +95,23 @@ void Bot::_readHandler(const std::string& message)
 void Bot::_writeHandler()
 {
     std::string line, comm;
-    while (_connection->isAlive())
-    {
+    while (_connection->isAlive()) {
         std::getline(std::cin, line);
         std::istringstream iss(line);
 
         iss >> comm;
-        if (comm == "/n")
-        {
+        if (comm == "/n") {
             iss >> comm;
             nick(comm);
-        }
-        else if (comm == "/j")
-        {
+        } else if (comm == "/j") {
             iss >> comm;
             join(comm);
-        }
-        else if (comm == "/m")
-        {
+        } else if (comm == "/m") {
             iss >> comm;
             msg(comm, iss.str());
-        }
-        else if (comm == "/s")
-        {
+        } else if (comm == "/s") {
             say(iss.str());
-        }
-        else if (comm == "/q")
-        {
+        } else if (comm == "/q") {
             iss >> comm;
             quit();
         }
