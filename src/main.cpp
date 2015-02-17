@@ -29,10 +29,6 @@
 #include "bot.h"
 #include "logger.h"
 #include "defines.h"
-void readHandler(const std::string& message)
-{
-    LOG_INFO("Read: " + message);
-}
 
 int main(int argc, char *argv[])
 {
@@ -46,4 +42,5 @@ int main(int argc, char *argv[])
     }
 
     bot.run();
+    return 0;
 }
