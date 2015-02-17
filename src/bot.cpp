@@ -79,7 +79,7 @@ void Bot::quit()
 
 void Bot::_readHandler(const std::string& message)
 {
-    LOG_INFO("Reading: " + message);
+    LOG_DEBUG("Reading: " + message);
     std::istringstream iss(message);
     std::string command;
     iss >> command;
