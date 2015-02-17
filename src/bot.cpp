@@ -67,6 +67,11 @@ void Bot::msg(const std::string& receiver, const std::string& message)
     _connection->writeMessage(std::string("PRIVMSG ") + receiver + " :" + message);
 }
 
+void Bot::pong(const std::string& serverName)
+{
+    _connection->writeMessage(std::string("PONG ") + serverName);
+}
+
 void Bot::quit()
 {
     _connection->writeMessage(std::string("QUIT : Shutting down."));
@@ -75,6 +80,19 @@ void Bot::quit()
 void Bot::_readHandler(const std::string& message)
 {
     LOG_INFO("Reading: " + message);
+    std::istringstream iss(message);
+    std::string command;
+    iss >> command;
+    char c = 0;
+    while(!iss.eof() && c != ':') {
+        iss >> c;
+    }
+    if(command == "PING")
+    {
+        std::string host;
+        iss >> host;
+        pong(host);
+    }
 }
 
 void Bot::_writeHandler()
