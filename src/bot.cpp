@@ -1,7 +1,11 @@
+#include "bot.h"
+
+#include <boost/regex/pattern_except.hpp>
+#include <boost/regex.hpp>
+#include <iostream>
 #include <string>
 #include <sstream>
-#include <iostream>
-#include "bot.h"
+
 #include "connection.h"
 #include "logger.h"
 
@@ -78,17 +82,12 @@ void Bot::quit()
 void Bot::_readHandler(const std::string& message)
 {
     LOG_DEBUG("Reading: " + message);
-    std::istringstream iss(message);
-    std::string command;
-    iss >> command;
-    char c = 0;
-    while(!iss.eof() && c != ':') {
-        iss >> c;
-    }
-    if(command == "PING") {
-        std::string host;
-        iss >> host;
-        pong(host);
+
+    std::string result;
+    if (parseCommand(message)) {
+        LOG_DEBUG("Command execution complete");
+    } else if (parseURL(message, result)) {
+        LOG_DEBUG("Found URL: " + result);
     }
 }
 
@@ -118,5 +117,48 @@ void Bot::_writeHandler()
     }
 }
 
+bool Bot::parseCommand(const std::string& message)
+{
+    std::istringstream iss(message);
+    std::string command;
+
+    iss >> command;
+
+    char c = 0;
+    while(!iss.eof() && c != ':') {
+        iss >> c;
+    }
+
+    bool commandFound = false;
+    if(command == "PING") {
+        std::string host;
+        iss >> host;
+        pong(host);
+        commandFound = true;
+    }
+
+    return commandFound;
 }
-        
+
+bool Bot::parseURL(const std::string& message, std::string& result)
+{
+    boost::regex urlRegex;
+    try {
+        // Source of the regular expression:
+        // http://daringfireball.net/2010/07/improved_regex_for_matching_urls
+        urlRegex.assign(R"((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))",
+                         boost::regex::ECMAScript);
+    } catch(boost::regex_error& error) {
+        std::cerr << "Invalid regular expression: " << error.what() << std::endl;
+        return false;
+    }
+
+    boost::smatch matchedElements;
+    bool containsURL = boost::regex_search(message, matchedElements, urlRegex);
+    result = matchedElements[0];
+
+    return containsURL;
+}
+
+}
+

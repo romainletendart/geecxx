@@ -21,6 +21,8 @@ public:
     void pong(const std::string& message);
     void quit();
 private:
+    bool parseCommand(const std::string& message);
+    bool parseURL(const std::string& message, std::string& result);
     void _readHandler(const std::string& message);
     void _writeHandler(void);
     Connection *_connection;
