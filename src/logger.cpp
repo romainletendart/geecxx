@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2015, Romain Létendart
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer. 
+ *    list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -27,12 +27,13 @@
 #include <chrono>
 #include <ctime>
 #include <iostream>
+#include <sstream>
 
 namespace geecxx
 {
 
 Logger::~Logger()
-{ 
+{
 }
 
 Logger& Logger::getInstance()
@@ -58,8 +59,12 @@ void Logger::log(const LogLevel& logLevel, const std::string& message)
         formattedTime[0] = '\0';
     }
 
-    std::cout << "[" << formattedTime << "][" << logLevelToStr(logLevel) << "]: "
-              << message << std::endl;
+    std::istringstream stream(message);
+    std::string messageChunk;
+    while (std::getline(stream, messageChunk) && !messageChunk.empty()) {
+        std::cout << "[" << formattedTime << "][" << logLevelToStr(logLevel) << "]: "
+                  << messageChunk << std::endl;
+    }
 }
 
 Logger::Logger()
