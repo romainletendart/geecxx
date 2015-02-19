@@ -1,6 +1,7 @@
 #ifndef GEECXX_BOT_H
 #define GEECXX_BOT_H
 
+#include <memory>
 #include <string>
 
 #include "configurationprovider.h"
@@ -27,9 +28,9 @@ private:
     bool parseURL(const std::string& message, std::string& result);
     void _readHandler(const std::string& message);
     void _writeHandler(void);
-    Connection* _connection = nullptr;
+    std::unique_ptr<Connection> _connection;
     std::string _currentChannel;
 };
 
 }
-#endif //GEECXX_BOT_H 
+#endif //GEECXX_BOT_H

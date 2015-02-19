@@ -18,17 +18,16 @@ Bot::Bot()
 
 Bot::~Bot()
 {
-    if (nullptr != _connection) {
+    if (_connection) {
         quit();
         _connection->close();
     }
-    delete _connection;
 }
 
 bool Bot::init(const ConfigurationProvider& configuration)
 {
-    _connection = new Connection(configuration.getServer(), std::to_string(configuration.getPortNumber()));
-    if (nullptr == _connection) {
+    _connection.reset(new Connection(configuration.getServer(), std::to_string(configuration.getPortNumber())));
+    if (!_connection) {
         return false;
     }
     _connection->setExternalReadHandler([this](const std::string& m){
@@ -65,7 +64,7 @@ void Bot::join(const std::string& channel, const std::string& key)
 
 void Bot::say(const std::string& message)
 {
-   msg(_currentChannel, message); 
+   msg(_currentChannel, message);
 }
 
 void Bot::msg(const std::string& receiver, const std::string& message)
