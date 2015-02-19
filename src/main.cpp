@@ -27,20 +27,28 @@
 #include <thread>
 
 #include "bot.h"
+#include "configurationprovider.h"
 #include "logger.h"
-#include "defines.h"
 
 int main(int argc, char *argv[])
 {
-    LOG_INFO("Starting Geecxx...");
-
     geecxx::Bot bot;
-    int ret = bot.init(GEECXX_NETWORK, GEECXX_PORT, GEECXX_NICK, GEECXX_CHANNEL);
 
-    if (ret) {
-        return -1;
+    // Create sub-scope to clean up configuration after we are done with it
+    {
+        geecxx::ConfigurationProvider configuration;
+
+        if (!configuration.parseCommandLineArgs(argc, argv)) {
+            std::cerr << configuration.help();
+            return -1;
+        }
+
+        if (!bot.init(configuration)) {
+            return -1;
+        }
     }
 
+    LOG_INFO("Starting Geecxx...");
     bot.run();
     return 0;
 }

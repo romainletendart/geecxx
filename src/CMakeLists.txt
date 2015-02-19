@@ -25,6 +25,7 @@ include_directories (${Geecxx_SOURCE_DIR}/src ${Geecxx_BINARY_DIR}/src)
 include_directories(${Boost_INCLUDE_DIR})
 
 set(GEECXX_SRCS main.cpp
+    configurationprovider.cpp
     connection.cpp
     logger.cpp
     bot.cpp

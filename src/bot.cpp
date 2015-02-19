@@ -18,27 +18,30 @@ Bot::Bot()
 
 Bot::~Bot()
 {
-    quit();
-    _connection->close();
+    if (nullptr != _connection) {
+        quit();
+        _connection->close();
+    }
     delete _connection;
 }
 
-int Bot::init(const std::string& addr, const std::string& port, const std::string& nickname, const std::string& channel)
+bool Bot::init(const ConfigurationProvider& configuration)
 {
-    _connection = new Connection(addr, port);
-    if(_connection == nullptr) {
-        return 1;
+    _connection = new Connection(configuration.getServer(), std::to_string(configuration.getPortNumber()));
+    if (nullptr == _connection) {
+        return false;
     }
     _connection->setExternalReadHandler([this](const std::string& m){
         this->_readHandler(m);
     });
     _connection->setExternalWriteHandler([this]() { _writeHandler(); });
     if(!_connection->open()) {
-        return 2;
+        return false;
     }
-    nick(nickname);
-    join(channel);
-    return 0;
+    nick(configuration.getNickname());
+    join(configuration.getChannelName(), configuration.getChannelKey());
+
+    return true;
 }
 
 void Bot::run()
@@ -53,9 +56,10 @@ void Bot::nick(const std::string& nickname)
     _connection->writeMessage(std::string("USER ") + nickname + " * * :" + nickname);
 }
 
-void Bot::join(const std::string& channel)
+void Bot::join(const std::string& channel, const std::string& key)
 {
-    _connection->writeMessage(std::string("JOIN ") + channel);
+    LOG_INFO(std::string("JOIN ") + channel + " " + key);
+    _connection->writeMessage(std::string("JOIN ") + channel + " " + key);
     _currentChannel = channel;
 }
 

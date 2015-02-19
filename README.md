@@ -24,5 +24,7 @@ Usage
 =====
 
 ```
-./geecxx
+./geecxx SERVER PORT CHANNEL [KEY] [NICKNAME]
 ```
+
+For more information, run the program without any arguments.
