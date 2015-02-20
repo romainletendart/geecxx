@@ -25,6 +25,7 @@
 #include <chrono>
 #include <string>
 #include <thread>
+#include <iostream>
 
 #include "bot.h"
 #include "configurationprovider.h"
