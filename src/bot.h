@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <sstream>
 
 #include "configurationprovider.h"
 #include "connection.h"
@@ -24,8 +25,8 @@ public:
     void pong(const std::string& message);
     void quit();
 private:
-    bool parseCommand(const std::string& message);
-    bool parseURL(const std::string& message, std::string& result);
+    bool _parseURL(const std::string& message, std::string& result);
+    std::istringstream& _skipToContent(std::istringstream& iss);
     void _readHandler(const std::string& message);
     void _writeHandler(void);
     std::unique_ptr<Connection> _connection;

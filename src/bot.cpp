@@ -82,16 +82,54 @@ void Bot::quit()
     _connection->writeMessage(std::string("QUIT : Shutting down."));
 }
 
+std::istringstream& Bot::_skipToContent(std::istringstream& iss)
+{
+    char c = 0;
+    while(!iss.eof() && c != ':') {
+        iss >> c;
+    }
+    return iss;
+}
+
 void Bot::_readHandler(const std::string& message)
 {
     LOG_DEBUG("Reading: " + message);
 
-    std::string result;
-    if (parseCommand(message)) {
-        LOG_DEBUG("Command execution complete");
-    } else if (parseURL(message, result)) {
-        LOG_DEBUG("Found URL: " + result);
+    std::istringstream iss(message);
+    std::string command;
+    std::string sender = "";
+    iss >> command;
+
+    if (command.size() > 1 && command[0] == ':') {
+    //this is probably a privmsg
+        size_t pos = command.find('!');
+        if (pos != std::string::npos) {
+            sender = command.substr(1, pos - 1);
+            iss >> command;
+        }
     }
+    
+    if (command == "PRIVMSG") {
+        std::string recipient;
+        iss >> recipient;
+        LOG_DEBUG("PRIVMSG FROM " + sender + " TO " + recipient);
+        
+        std::string result;
+        if (_parseURL(message, result)) {
+            LOG_DEBUG("Found URL: " + result);
+            if (recipient[0] == '#') {
+                say(result);
+            } else {
+                msg(sender, result);
+            }
+        }
+    } else if (command == "PING") {
+        _skipToContent(iss);
+        std::string host;
+        iss >> host;
+        pong(host);
+    }
+
 }
 
 void Bot::_writeHandler()
@@ -120,30 +158,7 @@ void Bot::_writeHandler()
     }
 }
 
-bool Bot::parseCommand(const std::string& message)
-{
-    std::istringstream iss(message);
-    std::string command;
-
-    iss >> command;
-
-    char c = 0;
-    while(!iss.eof() && c != ':') {
-        iss >> c;
-    }
-
-    bool commandFound = false;
-    if(command == "PING") {
-        std::string host;
-        iss >> host;
-        pong(host);
-        commandFound = true;
-    }
-
-    return commandFound;
-}
-
-bool Bot::parseURL(const std::string& message, std::string& result)
+bool Bot::_parseURL(const std::string& message, std::string& result)
 {
     boost::regex urlRegex;
     try {
