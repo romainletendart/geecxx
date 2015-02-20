@@ -117,7 +117,7 @@ void Bot::_readHandler(const std::string& message)
         std::string result;
         if (_parseURL(message, result)) {
             LOG_DEBUG("Found URL: " + result);
-            if (recipient[0] == '#') {
+            if (recipient == _currentChannel) {
                 say(result);
             } else {
                 msg(sender, result);
