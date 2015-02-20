@@ -55,6 +55,7 @@ public:
     void run();
 
 private:
+    void asyncRead();
     bool connect();
 
     std::string _addr;
@@ -70,7 +71,7 @@ private:
 
     WriteHandler _externalWriteHandler;
 
-    std::array<char, 256> _buffer;
+    boost::asio::streambuf _responseBuffer;
 };
 
 }

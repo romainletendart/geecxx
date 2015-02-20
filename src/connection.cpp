@@ -49,13 +49,7 @@ bool Connection::open()
         return false;
     }
 
-    _socket.async_read_some(boost::asio::buffer(_buffer),
-        boost::bind(&Connection::readHandler, this,
-            boost::asio::placeholders::error,
-            boost::asio::placeholders::bytes_transferred));
-
-    // This blocking call waits for completion of all asynchronous calls
-    //_ioService.run();
+    asyncRead();
 
     return true;
 }
@@ -91,12 +85,11 @@ void Connection::readHandler(const boost::system::error_code& error, std::size_t
     if (error) {
         close();
     } else {
-        _externalReadHandler(std::string(_buffer.data(), count));
-
-        _socket.async_read_some(boost::asio::buffer(_buffer),
-            boost::bind(&Connection::readHandler, this,
-                boost::asio::placeholders::error,
-                boost::asio::placeholders::bytes_transferred));
+        std::istream responseStream(&_responseBuffer);
+        std::string response;
+        std::getline(responseStream, response);
+        _externalReadHandler(response);
+        asyncRead();
     }
 }
 
@@ -128,16 +121,21 @@ bool Connection::connect()
     return true;
 }
 
+void Connection::asyncRead()
+{
+    boost::asio::async_read_until(_socket, _responseBuffer,
+        "\r\n", boost::bind(&Connection::readHandler, this,
+                            boost::asio::placeholders::error,
+                            boost::asio::placeholders::bytes_transferred));
+}
+
 void Connection::run()
 {
     std::thread writeHandlerThread(_externalWriteHandler);
-    _socket.async_read_some(boost::asio::buffer(_buffer),
-        boost::bind(&Connection::readHandler, this,
-        boost::asio::placeholders::error,
-        boost::asio::placeholders::bytes_transferred
-        )
-    );
+
+    // This blocking call waits for completion of all asynchronous calls
     _ioService.run();
+
     writeHandlerThread.join();
 }
 
