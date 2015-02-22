@@ -21,36 +21,26 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-cmake_minimum_required(VERSION 2.8.11)
+project(GeecxxTest)
 
-project(Geecxx)
+set(TARGET "geecxx-test")
 
-set(TARGET "geecxx")
+include_directories (${Geecxx_SOURCE_DIR}/src ${Geecxx_BINARY_DIR}/src)
+include_directories(${CPPUNIT_INCLUDE_DIRS})
+link_directories(${CPPUNIT_LIBRARY_DIRS})
 
-# Options
-option(WITH_TESTS "Generate tests binaries and data" OFF)
+set(CONNECTION_TEST_SRCS
+    connectiontest.cpp
+    ${Geecxx_SOURCE_DIR}/src/connection.cpp
+)
 
-# Find required packages
-find_package(Boost 1.53 COMPONENTS regex system REQUIRED)
-find_package(Threads REQUIRED)
-find_package(PkgConfig)
-if(WITH_TESTS)
-    pkg_check_modules(CPPUNIT REQUIRED cppunit>=1.13)
-endif()
+set(GEECXXTEST_SRCS main.cpp
+    ${Geecxx_SOURCE_DIR}/src/logger.cpp
+    ${CONNECTION_TEST_SRCS}
+)
 
-# Initialize CXXFLAGS
-set(CMAKE_CXX_FLAGS       "-Wall -Werror -std=c++11")
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
 
-# Configuration
-if(NOT WITH_LOG_LEVEL)
-    set(WITH_LOG_LEVEL 1 CACHE STRING "Log level threshold (0=DEBUG;1=INFO;2=WARNING;3=ERROR)")
-endif()
+add_executable(${TARGET} ${GEECXXTEST_SRCS})
+target_link_libraries(${TARGET} ${CPPUNIT_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
-configure_file(${Geecxx_SOURCE_DIR}/src/loggerconfig.h.in ${Geecxx_BINARY_DIR}/src/loggerconfig.h)
-
-add_subdirectory(src)
-
-if(WITH_TESTS)
-    add_subdirectory(tests)
-endif()
+install (TARGETS ${TARGET} DESTINATION bin)
