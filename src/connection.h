@@ -48,11 +48,11 @@ public:
 
     void setExternalReadHandler(const ReadHandler& externalReadHandler);
     void setExternalWriteHandler(const WriteHandler& externalWriteHandler);
-    void writeMessage(const std::string& message);
+    bool writeMessage(const std::string& message);
 
     void readHandler(const boost::system::error_code& error, std::size_t);
 
-    void run();
+    bool run();
 
 private:
     void asyncRead();

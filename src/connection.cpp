@@ -75,9 +75,15 @@ void Connection::setExternalWriteHandler(const WriteHandler& externalWriteHandle
     _externalWriteHandler = externalWriteHandler;
 }
 
-void Connection::writeMessage(const std::string& message)
+bool Connection::writeMessage(const std::string& message)
 {
+    if (!isAlive()) {
+        LOG_ERROR("Cannot write on closed connection");
+        return false;
+    }
+
     boost::asio::write(_socket, boost::asio::buffer(message + "\r\n"));
+    return true;
 }
 
 void Connection::readHandler(const boost::system::error_code& error, std::size_t count)
@@ -114,6 +120,7 @@ bool Connection::connect()
     if (error) {
         LOG_ERROR("Couldn't connect to " + _addr + ":" + _port + ".");
         LOG_ERROR("Reason: " + error.message());
+        close();
         return false;
     }
 
@@ -129,14 +136,20 @@ void Connection::asyncRead()
                             boost::asio::placeholders::bytes_transferred));
 }
 
-void Connection::run()
+bool Connection::run()
 {
+    if (!_externalWriteHandler) {
+        LOG_ERROR("External write handler not initialized");
+        return false;
+    }
     std::thread writeHandlerThread(_externalWriteHandler);
 
     // This blocking call waits for completion of all asynchronous calls
     _ioService.run();
 
     writeHandlerThread.join();
+
+    return true;
 }
 
 }
