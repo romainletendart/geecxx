@@ -61,7 +61,7 @@ void Logger::log(const LogLevel& logLevel, const std::string& message)
 
     std::istringstream stream(message);
     std::string messageChunk;
-    while (std::getline(stream, messageChunk) && !messageChunk.empty()) {
+    while (std::getline(stream, messageChunk)) {
         std::cout << "[" << formattedTime << "][" << logLevelToStr(logLevel) << "]: "
                   << messageChunk << std::endl;
     }
