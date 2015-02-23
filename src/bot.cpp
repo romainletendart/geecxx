@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <vector>
 
 #include "connection.h"
 #include "logger.h"
@@ -141,7 +142,13 @@ std::string Bot::_getTitleFromUrl(const std::string& url)
     curl::curl_easy easy(writer);
     easy.add(curl_pair<CURLoption,string>(CURLOPT_URL, url) );
     easy.add(curl_pair<CURLoption,long>(CURLOPT_FOLLOWLOCATION, 1L));
-    easy.perform();
+    try {
+        easy.perform();
+    } catch (curl::curl_easy_exception e) {
+        std::vector<pair<std::string, std::string>> w = e.what();
+        return "Exception: " + w.at(0).first;
+    }
+    
     size_t pos = oss.str().find("<title>") + 7;
     size_t pos2 = oss.str().find("</title>");
     return oss.str().substr(pos, pos2 - pos);
