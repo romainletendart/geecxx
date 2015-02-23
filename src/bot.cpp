@@ -156,6 +156,11 @@ std::string Bot::_getTitleFromUrl(const std::string& url)
     
     size_t pos = oss.str().find("<title>") + 7;
     size_t pos2 = oss.str().find("</title>");
+
+    if (pos == std::string::npos || pos2 == std::string::npos) {
+        return url;
+    }
+
     return oss.str().substr(pos, pos2 - pos);
 }
 
