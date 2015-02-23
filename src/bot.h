@@ -32,6 +32,7 @@ private:
     std::string _getTitleFromUrl(const std::string& url);
     std::unique_ptr<Connection> _connection;
     std::string _currentChannel;
+    std::string _nickname;
 };
 
 }

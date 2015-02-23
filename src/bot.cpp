@@ -55,6 +55,7 @@ void Bot::nick(const std::string& nickname)
     LOG_INFO("nick: " + nickname);
     _connection->writeMessage(std::string("NICK ") + nickname);
     _connection->writeMessage(std::string("USER ") + nickname + " * * :" + nickname);
+    _nickname = nickname;
 }
 
 void Bot::join(const std::string& channel, const std::string& key)
@@ -115,12 +116,16 @@ void Bot::_readHandler(const std::string& message)
         std::string recipient;
         iss >> recipient;
         LOG_DEBUG("PRIVMSG FROM " + sender + " TO " + recipient);
+
+        if(recipient == _nickname) {
+            return;
+        }
         
         std::string result;
         if (_parseURL(message, result)) {
             LOG_DEBUG("Found URL: " + result);
             const std::string title = _getTitleFromUrl(result);
-            if (recipient == _currentChannel) {
+            if (sender == _currentChannel) {
                 say(title);
             } else {
                 msg(sender, title);
