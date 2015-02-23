@@ -49,6 +49,7 @@ endif()
 
 configure_file(${Geecxx_SOURCE_DIR}/src/loggerconfig.h.in ${Geecxx_BINARY_DIR}/src/loggerconfig.h)
 
+add_subdirectory(ext/curlcpp)
 add_subdirectory(src)
 
 if(WITH_TESTS)

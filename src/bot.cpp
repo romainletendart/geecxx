@@ -8,6 +8,7 @@
 
 #include "connection.h"
 #include "logger.h"
+#include "curl_easy.h"
 
 namespace geecxx
 {
@@ -117,10 +118,11 @@ void Bot::_readHandler(const std::string& message)
         std::string result;
         if (_parseURL(message, result)) {
             LOG_DEBUG("Found URL: " + result);
+            const std::string title = _getTitleFromUrl(result);
             if (recipient == _currentChannel) {
-                say(result);
+                say(title);
             } else {
-                msg(sender, result);
+                msg(sender, title);
             }
         }
     } else if (command == "PING") {
@@ -130,6 +132,19 @@ void Bot::_readHandler(const std::string& message)
         pong(host);
     }
 
+}
+
+std::string Bot::_getTitleFromUrl(const std::string& url)
+{
+    std::ostringstream oss;
+    curl_writer writer(oss);
+    curl::curl_easy easy(writer);
+    easy.add(curl_pair<CURLoption,string>(CURLOPT_URL, url) );
+    easy.add(curl_pair<CURLoption,long>(CURLOPT_FOLLOWLOCATION, 1L));
+    easy.perform();
+    size_t pos = oss.str().find("<title>") + 7;
+    size_t pos2 = oss.str().find("</title>");
+    return oss.str().substr(pos, pos2 - pos);
 }
 
 void Bot::_writeHandler()

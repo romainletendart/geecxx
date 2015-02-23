@@ -23,6 +23,7 @@
 #
 include_directories (${Geecxx_SOURCE_DIR}/src ${Geecxx_BINARY_DIR}/src)
 include_directories(${Boost_INCLUDE_DIR})
+include_directories(${CURLCPP_SOURCE_DIR}/include)
 
 set(GEECXX_SRCS main.cpp
     configurationprovider.cpp
@@ -33,6 +34,7 @@ set(GEECXX_SRCS main.cpp
 
 
 add_executable(${TARGET} ${GEECXX_SRCS})
-target_link_libraries(${TARGET} ${Boost_LIBRARIES}  ${CMAKE_THREAD_LIBS_INIT})
+get_property(CURLCPP_LIBRARIES TARGET curlcpp PROPERTY LOCATION)
+target_link_libraries(${TARGET} ${Boost_LIBRARIES}  ${CMAKE_THREAD_LIBS_INIT} ${CURLCPP_LIBRARIES} ${CURL_LIBRARY})
 
 install (TARGETS ${TARGET} DESTINATION bin)
