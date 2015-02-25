@@ -1,3 +1,0 @@
-[submodule "ext/curlcpp"]
-	path = ext/curlcpp
-	url = git@github.com:JosephP91/curlcpp.git

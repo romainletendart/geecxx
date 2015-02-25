@@ -6,10 +6,11 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <curl/curl.h>
 
 #include "connection.h"
 #include "logger.h"
-#include "curl_easy.h"
+#include "curl.h"
 
 namespace geecxx
 {
@@ -125,7 +126,7 @@ void Bot::_readHandler(const std::string& message)
         if (_parseURL(message, result)) {
             LOG_DEBUG("Found URL: " + result);
             const std::string title = _getTitleFromUrl(result);
-            if (sender == _currentChannel) {
+            if (recipient == _currentChannel) {
                 say(title);
             } else {
                 msg(sender, title);
@@ -142,27 +143,9 @@ void Bot::_readHandler(const std::string& message)
 
 std::string Bot::_getTitleFromUrl(const std::string& url)
 {
-    std::ostringstream oss;
-    curl_writer writer(oss);
-    curl::curl_easy easy(writer);
-    easy.add(curl_pair<CURLoption,string>(CURLOPT_URL, url) );
-    easy.add(curl_pair<CURLoption,long>(CURLOPT_FOLLOWLOCATION, 1L));
-    try {
-        easy.perform();
-    } catch (curl::curl_easy_exception e) {
-        std::vector<pair<std::string, std::string>> w = e.what();
-        return "Exception: " + w.at(0).first;
-    }
-    
-    size_t pos = oss.str().find("<title>") + 7;
-    size_t pos2 = oss.str().find("</title>");
-
-    if (pos == std::string::npos || pos2 == std::string::npos) {
-        return url;
-    }
-
-    return oss.str().substr(pos, pos2 - pos);
-}
+    std::string title = geecxx::Curl::retrievePageTitle(url);
+    return std::string(title + " (" + url + ')');
+}   
 
 void Bot::_writeHandler()
 {

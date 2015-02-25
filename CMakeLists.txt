@@ -33,6 +33,7 @@ option(WITH_TESTS "Generate tests binaries and data" OFF)
 # Find required packages
 find_package(Boost 1.53 COMPONENTS regex system REQUIRED)
 find_package(Threads REQUIRED)
+find_package(CURL REQUIRED)
 find_package(PkgConfig)
 if(WITH_TESTS)
     pkg_check_modules(CPPUNIT REQUIRED cppunit>=1.13)
@@ -49,7 +50,6 @@ endif()
 
 configure_file(${Geecxx_SOURCE_DIR}/src/loggerconfig.h.in ${Geecxx_BINARY_DIR}/src/loggerconfig.h)
 
-add_subdirectory(ext/curlcpp)
 add_subdirectory(src)
 
 if(WITH_TESTS)
