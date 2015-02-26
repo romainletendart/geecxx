@@ -24,7 +24,13 @@ Usage
 =====
 
 ```
-./geecxx SERVER PORT CHANNEL [KEY] [NICKNAME]
-```
+geecxx [options] <server> <port> <channel>
 
-For more information, run the program without any arguments.
+Optional arguments:
+  --key arg              the protection key for the channel
+  --nick arg (=geecxx)   the bot's nickname
+
+Generic options:
+  -h [ --help ]          produce help message
+
+```

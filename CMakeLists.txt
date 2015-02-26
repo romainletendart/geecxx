@@ -31,7 +31,7 @@ set(TARGET "geecxx")
 option(WITH_TESTS "Generate tests binaries and data" OFF)
 
 # Find required packages
-find_package(Boost 1.53 COMPONENTS locale regex system REQUIRED)
+find_package(Boost 1.53 COMPONENTS locale program_options regex system REQUIRED)
 find_package(Threads REQUIRED)
 find_package(CURL REQUIRED)
 find_package(PkgConfig)

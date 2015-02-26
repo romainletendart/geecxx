@@ -27,8 +27,9 @@
 
 #include <cstdint>
 #include <string>
+#include <boost/program_options.hpp>
 
-#include "defines.h"
+namespace po = boost::program_options;
 
 namespace geecxx
 {
@@ -43,7 +44,7 @@ public:
     /**
      * Default constructor.
      */
-    ConfigurationProvider() = default;
+    ConfigurationProvider();
 
     /**
      * Parse command line arguments forwarded from main() to retrieve and store
@@ -70,13 +71,17 @@ public:
     std::string getChannelName() const;
 
     std::string getChannelKey() const;
-
+    
+    bool needsHelp() const;
 private:
-    std::string _server = GEECXX_DEFAULT_SERVER;
-    std::uint16_t _portNumber = GEECXX_DEFAULT_PORT;
-    std::string _nickname = GEECXX_DEFAULT_NICK;
-    std::string _channelName = GEECXX_DEFAULT_CHANNEL;
+    po::options_description _cliOptions;
+    po::options_description _helpOptions;
+    std::string _server;
+    std::uint16_t _portNumber;
+    std::string _nickname;
+    std::string _channelName;
     std::string _channelKey; // Channel key is empty by default
+    bool _help;
 };
 
 }

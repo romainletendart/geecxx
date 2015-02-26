@@ -44,6 +44,11 @@ int main(int argc, char *argv[])
             return -1;
         }
 
+        if (configuration.needsHelp()) {
+            std::cout << configuration.help();
+            return 0;
+        }
+
         if (!bot.init(configuration)) {
             return -1;
         }

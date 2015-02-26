@@ -24,82 +24,83 @@
  */
 #include "configurationprovider.h"
 
-#include <istream>
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
+#include <boost/program_options.hpp>
+
+namespace po = boost::program_options;
 
 namespace geecxx
 {
 
+ConfigurationProvider::ConfigurationProvider() :
+    _help(false)
+{
+    po::options_description mandatory("Mandatory arguments");
+    mandatory.add_options()
+        ("server", po::value<std::string>()->required(), "the irc server to connect to")
+        ("port", po::value<std::uint16_t>()->required(), "the port to connect to")
+        ("channel", po::value<std::string>()->required(), "the channel to connect to")
+    ;
+    po::options_description optional("Optional arguments");
+    optional.add_options()
+        ("key", po::value<std::string>(), "the protection key for the channel")
+        ("nick", po::value<std::string>()->default_value(std::string("geecxx")), "the bot's nickname")
+    ;
+    po::options_description generic("Generic options");
+    generic.add_options()
+        ("help,h", "produce help message")
+    ;
+    _cliOptions.add(mandatory).add(optional).add(generic);
+    _helpOptions.add(optional).add(generic);
+
+}
+
 bool ConfigurationProvider::parseCommandLineArgs(int argc, char *argv[])
 {
-    std::vector<std::string> arguments;
-    for (int i = 1; i < argc; ++i) {
-        arguments.emplace_back(argv[i]);
-    }
+    try {
+        po::positional_options_description p;
+        p.add("server", 1);
+        p.add("port", 1);
+        p.add("channel", 1);
 
-    size_t curIndex = 0;
-    if (curIndex == arguments.size()) {
+        po::variables_map vm;      
+        po::store(po::command_line_parser(argc, argv).options(_cliOptions).positional(p).run(), vm);
+        po::notify(vm); 
+ 
+        if (vm.count("help")) {
+            _help = true;
+            return true;
+        }
+
+        _server = vm["server"].as<std::string>();
+        _portNumber = vm["port"].as<std::uint16_t>();
+        _channelName = vm["channel"].as<std::string>();
+
+        if (vm.count("key")) {
+            _channelKey = vm["key"].as<std::string>();
+        }
+
+        if (vm.count("nick")) {
+            _nickname = vm["nick"].as<std::string>();
+        }
+
+    } catch(std::exception& e) {
+        std::cerr << e.what() << std::endl;
         return false;
     }
 
-    _server = arguments[curIndex];
-
-    if (++curIndex == arguments.size()) {
-        return false;
-    }
-
-    uint16_t tempPortNumber;
-    std::istringstream(arguments[curIndex]) >> tempPortNumber;
-
-    // Even if 0 was the port number entered by the user, it is still an
-    // invalid TCP port number.
-    if (0 == tempPortNumber) {
-        return false;
-    }
-
-    _portNumber = tempPortNumber;
-
-    if (++curIndex == arguments.size()) {
-        return false;
-    }
-
-    _channelName = arguments[curIndex];
-
-    if (++curIndex == arguments.size()) {
-        return true;
-    }
-
-    _channelKey = arguments[curIndex];
-
-    if (++curIndex == arguments.size()) {
-        return true;
-    }
-
-    _nickname = arguments[curIndex];
-
-    return (++curIndex == arguments.size());
+    return true;
 }
 
 std::string ConfigurationProvider::help()
 {
-    std::stringstream help;
-
-    // TODO Use target name instead of hard coded program name
-    help << "Usage: geecxx SERVER PORT CHANNEL [KEY] [NICKNAME]" << std::endl;
-    help << "Run geecxx bot on SERVER:PORT under the given NICKNAME on a specific CHANNEL." << std::endl;
-    help << std::endl;
-    help << "Mandatory arguments are:" << std::endl;
-    help << "SERVER\t\t\t Name or IP address of the IRC server" << std::endl;
-    help << "PORT\t\t\t TCP port number on which the IRC server is running" << std::endl;
-    help << "CHANNEL\t\t\t Channel that the bot has to join" << std::endl;
-    help << std::endl;
-    help << "Optional arguments are:" << std::endl;
-    help << "KEY\t\t\t Channel key that the bot shoud provide to enter the specific CHANNEL (if needed)" << std::endl;
-    help << "NICKNAME\t\t\t Nickname that the bot has to use" << std::endl;
-
-    return help.str();
+    std::ostringstream oss;
+    oss << "Usage: geecxx [options] <server> <port> <channel>" << std::endl;
+    oss << _helpOptions;
+    return oss.str();
 }
 
 std::string ConfigurationProvider::getServer() const
@@ -125,6 +126,11 @@ std::string ConfigurationProvider::getChannelName() const
 std::string ConfigurationProvider::getChannelKey() const
 {
     return _channelKey;
+}
+
+bool ConfigurationProvider::needsHelp() const
+{
+    return _help;
 }
 
 }
