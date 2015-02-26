@@ -153,7 +153,6 @@ void Bot::_writeHandler()
     while (_connection->isAlive()) {
         std::getline(std::cin, line);
         std::istringstream iss(line);
-
         iss >> comm;
         if (comm == "/n") {
             iss >> comm;
@@ -163,9 +162,15 @@ void Bot::_writeHandler()
             join(comm);
         } else if (comm == "/m") {
             iss >> comm;
-            msg(comm, iss.str());
+            iss.seekg(1, std::ios_base::cur); //skipping space
+            std::string message;
+            std::getline(iss, message);
+            msg(comm, message);
         } else if (comm == "/s") {
-            say(iss.str());
+            iss.seekg(1, std::ios_base::cur); //skipping space
+            std::string message;
+            std::getline(iss, message);
+            say(message);
         } else if (comm == "/q") {
             iss >> comm;
             quit();
