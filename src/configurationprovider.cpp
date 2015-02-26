@@ -40,14 +40,14 @@ ConfigurationProvider::ConfigurationProvider() :
 {
     po::options_description mandatory("Mandatory arguments");
     mandatory.add_options()
-        ("server", po::value<std::string>()->required(), "the irc server to connect to")
-        ("port", po::value<std::uint16_t>()->required(), "the port to connect to")
-        ("channel", po::value<std::string>()->required(), "the channel to connect to")
+        ("server", po::value<std::string>(&_server)->required(), "the irc server to connect to")
+        ("port", po::value<std::uint16_t>(&_portNumber)->required(), "the port to connect to")
+        ("channel", po::value<std::string>(&_channelName)->required(), "the channel to connect to")
     ;
     po::options_description optional("Optional arguments");
     optional.add_options()
-        ("key", po::value<std::string>(), "the protection key for the channel")
-        ("nick", po::value<std::string>()->default_value(std::string("geecxx")), "the bot's nickname")
+        ("key", po::value<std::string>(&_channelKey)->default_value(std::string()), "the protection key for the channel")
+        ("nick", po::value<std::string>(&_nickname)->default_value(std::string("geecxx")), "the bot's nickname")
     ;
     po::options_description generic("Generic options");
     generic.add_options()
@@ -74,19 +74,6 @@ bool ConfigurationProvider::parseCommandLineArgs(int argc, char *argv[])
             _help = true;
             return true;
         }
-
-        _server = vm["server"].as<std::string>();
-        _portNumber = vm["port"].as<std::uint16_t>();
-        _channelName = vm["channel"].as<std::string>();
-
-        if (vm.count("key")) {
-            _channelKey = vm["key"].as<std::string>();
-        }
-
-        if (vm.count("nick")) {
-            _nickname = vm["nick"].as<std::string>();
-        }
-
     } catch(std::exception& e) {
         std::cerr << e.what() << std::endl;
         return false;
