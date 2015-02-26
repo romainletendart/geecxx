@@ -68,12 +68,14 @@ bool ConfigurationProvider::parseCommandLineArgs(int argc, char *argv[])
 
         po::variables_map vm;      
         po::store(po::command_line_parser(argc, argv).options(_cliOptions).positional(p).run(), vm);
-        po::notify(vm); 
  
         if (vm.count("help")) {
             _help = true;
             return true;
         }
+
+        po::notify(vm); 
+
     } catch (po::required_option& e) {
         std::cerr << "Missing mandatory argument: " 
                   << e.get_option_name().substr(2)
