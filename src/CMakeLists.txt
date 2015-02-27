@@ -27,6 +27,7 @@ include_directories(${Boost_INCLUDE_DIR})
 set(GEECXX_SRCS main.cpp
     configurationprovider.cpp
     connection.cpp
+    htmlentitieshelper.cpp
     logger.cpp
     bot.cpp
     curl.cpp
