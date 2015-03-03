@@ -7,6 +7,7 @@
 
 #include "configurationprovider.h"
 #include "connection.h"
+#include "htmlentitieshelper.h"
 
 namespace geecxx
 {
@@ -33,6 +34,7 @@ private:
     std::unique_ptr<Connection> _connection;
     std::string _currentChannel;
     std::string _nickname;
+    HTMLEntitiesHelper _htmlEntitiesHelper;
 };
 
 }

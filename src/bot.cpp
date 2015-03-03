@@ -125,7 +125,7 @@ void Bot::_readHandler(const std::string& message)
         std::string result;
         if (_parseURL(message, result)) {
             LOG_DEBUG("Found URL: " + result);
-            const std::string title = _getTitleFromUrl(result);
+            const std::string title = _htmlEntitiesHelper.decode(_getTitleFromUrl(result));
             if (recipient == _currentChannel) {
                 say(title);
             } else {
