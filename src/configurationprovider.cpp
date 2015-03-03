@@ -77,9 +77,6 @@ bool ConfigurationProvider::parseCommandLineArgs(int argc, char *argv[])
         po::notify(vm); 
 
     } catch (po::required_option& e) {
-        std::cerr << "Missing mandatory argument: " 
-                  << e.get_option_name().substr(2)
-                  << std::endl;
         return false;
     } catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
