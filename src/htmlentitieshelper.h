@@ -37,6 +37,7 @@ public:
     HTMLEntitiesHelper();
     std::string decode(std::string input);
 private:
+    std::string fromCode(std::string code);
     std::map<std::string, std::string> _entitiesDictionary;
 };
 

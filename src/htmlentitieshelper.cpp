@@ -24,6 +24,11 @@
  */
 #include "htmlentitieshelper.h"
 
+#include <boost/locale.hpp>
+#include <sstream>
+
+#include "logger.h"
+
 namespace geecxx
 {
 
@@ -2172,14 +2177,22 @@ std::string HTMLEntitiesHelper::decode(std::string input)
             break;
         } else if (entityEnd > (entityStart + 2)) {
             // Here we found something like "&XX;"
-            auto decodedEntity = _entitiesDictionary.find(input.substr(entityStart + 1, entityEnd - (entityStart + 1)));
-            if (_entitiesDictionary.end() == decodedEntity) {
-                // "&XX;" was not an entity, start right after '&' for next iteration
-                currentPos = entityStart + 1;
-            } else {
+            std::string entityCandidate = input.substr(entityStart + 1, entityEnd - (entityStart + 1));
+            auto decodedEntity = _entitiesDictionary.find(entityCandidate);
+            if (_entitiesDictionary.end() != decodedEntity) {
                 // Replace found entity and start right after replacement's end for next iteration
                 input.replace(entityStart, (entityEnd - entityStart + 1), decodedEntity->second);
                 currentPos = entityStart + decodedEntity->second.length();
+            } else {
+                std::string decodedBytes = fromCode(entityCandidate);
+                if ("" != decodedBytes) {
+                    // Replace found entity &#NN; and start right after replacement's end for next iteration
+                    input.replace(entityStart, (entityEnd - entityStart + 1), decodedBytes);
+                    currentPos = entityStart + decodedBytes.length();
+                } else {
+                    // "&XX;" was not an entity, start right after '&' for next iteration
+                    currentPos = entityStart + 1;
+                }
             }
         } else {
             // Didn't find a valid entity, start right after '&' for next iteration
@@ -2189,6 +2202,35 @@ std::string HTMLEntitiesHelper::decode(std::string input)
     }
 
     return input;
+}
+
+std::string HTMLEntitiesHelper::fromCode(std::string code)
+{
+    std::stringstream stream(code);
+
+    // Expected entity format: &#NNNN;
+    if ('#' != stream.peek()) {
+        return "";
+    } else {
+        stream.ignore();
+    }
+
+    wint_t numCode;
+    stream >> numCode;
+    if (!stream.eof() || stream.fail()) {
+        // Could not convert the whole string as a number
+        return "";
+    }
+
+    std::string decodedBytes;
+    try {
+        std::wstring utfCode = {static_cast<wchar_t>(numCode)};
+        decodedBytes = boost::locale::conv::from_utf(utfCode, "UTF-8", boost::locale::conv::stop);
+    } catch (boost::locale::conv::conversion_error&) {
+        LOG_WARNING("Could not decode HTML entity: " + code);
+        decodedBytes = "";
+    }
+    return decodedBytes;
 }
 
 }

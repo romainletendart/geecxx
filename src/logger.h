@@ -64,7 +64,7 @@ private:
 
 #define LOG_DEBUG(message)   geecxx::Logger::getInstance().log(geecxx::LogLevel::DEBUG, message)
 #define LOG_INFO(message)    geecxx::Logger::getInstance().log(geecxx::LogLevel::INFO, message)
-#define LOG_WARNING(message) geecxx::Logger::getInstance().log(geecxx::LogLeve::WARNING, message)
+#define LOG_WARNING(message) geecxx::Logger::getInstance().log(geecxx::LogLevel::WARNING, message)
 #define LOG_ERROR(message)   geecxx::Logger::getInstance().log(geecxx::LogLevel::ERROR, message)
 
 #endif // GEECXX_LOGGER_H_
