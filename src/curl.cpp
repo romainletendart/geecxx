@@ -23,7 +23,7 @@ std::string Curl::retrievePageTitle(const std::string& url)
     CURL *curl;
     CURLcode res;
     std::ostringstream readBuffer;
-    std::string title = "";
+    std::string title = "Untitled";
 
     curl_global_init(CURL_GLOBAL_DEFAULT);
 
