@@ -9,7 +9,7 @@ namespace
 
 static size_t curlWriteCallBack(void *contents, size_t size, size_t nmemb, void *userp)
 {
-    ((std::ostringstream*)userp)->write((char*)contents, size * nmemb);
+    ((std::stringstream*)userp)->write((char*)contents, size * nmemb);
     return size * nmemb;
 }
 
@@ -22,38 +22,62 @@ std::string Curl::retrievePageTitle(const std::string& url)
 {
     CURL *curl;
     CURLcode res;
-    std::ostringstream readBuffer;
+    std::stringstream readBuffer;
     std::string title = "Untitled";
+    long errorCode;
 
-    curl_global_init(CURL_GLOBAL_DEFAULT);
-
+    //Retrieving headers information first
     curl = curl_easy_init();
-    if (curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ::curlWriteCallBack);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-        res = curl_easy_perform(curl);
-        long errorCode;
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &errorCode);
-        curl_easy_cleanup(curl);
-        if(res == CURLE_OK) {
-            if (errorCode == 200l) {
-                //parsing
-                size_t pos = readBuffer.str().find("<title>") + 7;
-                size_t pos2 = readBuffer.str().find("</title>");
-
-                if (pos != std::string::npos && pos2 != std::string::npos) {
-                    title = readBuffer.str().substr(pos, pos2 - pos);
-                }
-            } else {
-                title = strHttpError(errorCode);
-            }
-        } else {
-            title = std::string(curl_easy_strerror(res));
-        }
-    } else {
+    if (!curl) {
        LOG_ERROR("Failed to allocate curl object.");
+       return title;
+    }
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ::curlWriteCallBack);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
+    curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
+    res = curl_easy_perform(curl);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &errorCode);
+    curl_easy_cleanup(curl);
+    if (res != CURLE_OK) {
+        return std::string(curl_easy_strerror(res));
+    }
+    if (errorCode != 200l) {
+        return strHttpError(errorCode);
+    }
+    std::string contentType = getHttpHeaderField(readBuffer, "Content-Type");
+    if (contentType.find("text/html") == std::string::npos) {
+        return title;
+    }
+    
+    //We can now retrieve the html
+    curl = curl_easy_init();
+    if (!curl) {
+       LOG_ERROR("Failed to allocate curl object.");
+       return title;
+    }
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ::curlWriteCallBack);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    res = curl_easy_perform(curl);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &errorCode);
+    curl_easy_cleanup(curl);
+    if(res != CURLE_OK) {
+        return std::string(curl_easy_strerror(res));
+    }
+    if (errorCode != 200l) {
+        return strHttpError(errorCode);
+    }
+
+    //parsing title
+    size_t pos = readBuffer.str().find("<title>") + 7;
+    size_t pos2 = readBuffer.str().find("</title>");
+
+    if (pos != std::string::npos && pos2 != std::string::npos) {
+        title = readBuffer.str().substr(pos, pos2 - pos);
     }
     return title;
 }
@@ -92,6 +116,23 @@ std::string Curl::strHttpError(const long& errorCode)
             message << "The internet is your friend";
     }
     return message.str();
+}
+
+std::string Curl::getHttpHeaderField(std::stringstream& headers, const std::string& key)
+{
+    std::string value;
+    std::string line;
+
+    std::string pattern = std::string(key + ": ");
+    
+    while (std::getline(headers, line)) {
+        size_t o = line.find(pattern);
+        if (o != std::string::npos) {
+            value = line.substr(o + pattern.size());
+            break;
+        }
+    }
+    return value;
 }
 
 }
