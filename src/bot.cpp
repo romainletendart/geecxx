@@ -143,7 +143,7 @@ void Bot::_readHandler(const std::string& message)
 
 std::string Bot::_getTitleFromUrl(const std::string& url)
 {
-    std::string title = geecxx::Curl::retrievePageTitle(url);
+    std::string title = Curl::getInstance().retrievePageTitle(url);
     return std::string(title + " (" + url + ')');
 }   
 

@@ -26,7 +26,6 @@
 #include <string>
 #include <thread>
 #include <iostream>
-#include <curl/curl.h>
 
 #include "bot.h"
 #include "configurationprovider.h"
@@ -56,8 +55,6 @@ int main(int argc, char *argv[])
     }
 
     LOG_INFO("Starting Geecxx...");
-    curl_global_init(CURL_GLOBAL_DEFAULT);
     bot.run();
-    curl_global_cleanup();
     return 0;
 }
