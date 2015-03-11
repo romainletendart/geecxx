@@ -1,7 +1,10 @@
 #include "bot.h"
 
+#include <algorithm>
 #include <boost/regex/pattern_except.hpp>
 #include <boost/regex.hpp>
+#include <cctype>
+#include <functional>
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -73,7 +76,13 @@ void Bot::say(const std::string& message)
 
 void Bot::msg(const std::string& receiver, const std::string& message)
 {
-    _connection->writeMessage(std::string("PRIVMSG ") + receiver + " :" + message);
+    std::istringstream stream(message);
+    std::string messageChunk;
+    while (std::getline(stream, messageChunk)) {
+        if (messageChunk != "") {
+            _connection->writeMessage(std::string("PRIVMSG ") + receiver + " :" + messageChunk);
+        }
+    }
 }
 
 void Bot::pong(const std::string& serverName)
@@ -144,6 +153,18 @@ void Bot::_readHandler(const std::string& message)
 std::string Bot::_getTitleFromUrl(const std::string& url)
 {
     std::string title = Curl::getInstance().retrievePageTitle(url);
+
+    // Filter out new line characters to keep title on a single line
+    char filteredChars[] = {'\r', '\n'};
+    for (char c : filteredChars) {
+        title.erase(std::remove(title.begin(), title.end(), c), title.end());
+    }
+
+    // Trim left
+    title.erase(title.begin(), std::find_if(title.begin(), title.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+    // Trim right
+    title.erase(std::find_if(title.rbegin(), title.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), title.end());
+
     return std::string(title + " (" + url + ')');
 }   
 
