@@ -1,6 +1,7 @@
 #ifndef GEECXX_BOT_H
 #define GEECXX_BOT_H
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <sstream>
@@ -31,10 +32,14 @@ private:
     void _readHandler(const std::string& message);
     void _writeHandler(void);
     std::string _getTitleFromUrl(const std::string& url);
+
+    uint16_t _getNextUrlId();
+
     std::unique_ptr<Connection> _connection;
     std::string _currentChannel;
     std::string _nickname;
     HTMLEntitiesHelper _htmlEntitiesHelper;
+    uint16_t _nextUrlId = 1;
 };
 
 }

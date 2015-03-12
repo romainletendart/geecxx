@@ -134,11 +134,13 @@ void Bot::_readHandler(const std::string& message)
         std::string result;
         if (_parseURL(message, result)) {
             LOG_DEBUG("Found URL: " + result);
-            const std::string title = _htmlEntitiesHelper.decode(_getTitleFromUrl(result));
+            std::stringstream title;
+            title << _htmlEntitiesHelper.decode(_getTitleFromUrl(result)) << " (URL#" << _getNextUrlId() << ")";
+
             if (recipient == _currentChannel) {
-                say(title);
+                say(title.str());
             } else {
-                msg(sender, title);
+                msg(sender, title.str());
             }
         }
     } else if (command == "PING") {
@@ -165,8 +167,21 @@ std::string Bot::_getTitleFromUrl(const std::string& url)
     // Trim right
     title.erase(std::find_if(title.rbegin(), title.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), title.end());
 
-    return std::string(title + " (" + url + ')');
-}   
+    return title;
+}
+
+uint16_t Bot::_getNextUrlId()
+{
+    uint16_t urlId = _nextUrlId;
+
+    if (_nextUrlId < UINT16_MAX) {
+        _nextUrlId++;
+    } else {
+        _nextUrlId = 1;
+    }
+
+    return urlId;
+}
 
 void Bot::_writeHandler()
 {
