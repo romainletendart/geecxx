@@ -8,7 +8,6 @@
 
 #include "configurationprovider.h"
 #include "connection.h"
-#include "htmlentitieshelper.h"
 
 namespace geecxx
 {
@@ -31,14 +30,12 @@ private:
     std::istringstream& _skipToContent(std::istringstream& iss);
     void _readHandler(const std::string& message);
     void _writeHandler(void);
-    std::string _getTitleFromUrl(const std::string& url);
 
     uint16_t _getNextUrlId();
 
     std::unique_ptr<Connection> _connection;
     std::string _currentChannel;
     std::string _nickname;
-    HTMLEntitiesHelper _htmlEntitiesHelper;
     uint16_t _nextUrlId = 1;
 };
 

@@ -1,10 +1,8 @@
 #include "bot.h"
 
-#include <algorithm>
 #include <boost/regex/pattern_except.hpp>
 #include <boost/regex.hpp>
 #include <cctype>
-#include <functional>
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -131,19 +129,16 @@ void Bot::_readHandler(const std::string& message)
             return;
         }
         
-        std::string result;
-        if (_parseURL(message, result)) {
-            LOG_DEBUG("Found URL: " + result);
-            std::string title = _htmlEntitiesHelper.decode(_getTitleFromUrl(result));
-
-            if ("" == title) {
-                // Nothing interesting to be returned to the user
+        std::string urlCandidate;
+        if (_parseURL(message, urlCandidate)) {
+            LOG_DEBUG("Found URL: " + urlCandidate);
+            std::string title;
+            if (!WebInfoRetriever::getInstance().retrievePageTitle(urlCandidate, title) || "" == title) {
                 return;
             }
 
             std::stringstream titleOutput;
             titleOutput << title << " (URL#" << _getNextUrlId() << ")";
-
             if (recipient == _currentChannel) {
                 say(titleOutput.str());
             } else {
@@ -157,24 +152,6 @@ void Bot::_readHandler(const std::string& message)
         pong(host);
     }
 
-}
-
-std::string Bot::_getTitleFromUrl(const std::string& url)
-{
-    std::string title = WebInfoRetriever::getInstance().retrievePageTitle(url);
-
-    // Filter out new line characters to keep title on a single line
-    char filteredChars[] = {'\r', '\n'};
-    for (char c : filteredChars) {
-        title.erase(std::remove(title.begin(), title.end(), c), title.end());
-    }
-
-    // Trim left
-    title.erase(title.begin(), std::find_if(title.begin(), title.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
-    // Trim right
-    title.erase(std::find_if(title.rbegin(), title.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), title.end());
-
-    return title;
 }
 
 uint16_t Bot::_getNextUrlId()

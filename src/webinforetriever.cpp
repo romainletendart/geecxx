@@ -1,7 +1,11 @@
+#include "webinforetriever.h"
+
+#include <algorithm>
+#include <curl/curl.h>
+#include <functional>
 #include <sstream>
 #include <string>
-#include <curl/curl.h>
-#include "webinforetriever.h"
+
 #include "logger.h"
 
 namespace
@@ -27,79 +31,43 @@ WebInfoRetriever& WebInfoRetriever::getInstance()
 {
     // Static variable initialization ensures threadsafety in C++11 standard
     static WebInfoRetriever webInfoRetriever;
+
     return webInfoRetriever;
 }
 
-std::string WebInfoRetriever::retrievePageTitle(const std::string& url)
+bool WebInfoRetriever::retrievePageTitle(const std::string& url, std::string &pageTitle)
 {
     if (!_isInitiliazed) {
-        return "Unable to retrieve page title (please check the logs).";
+        return false;
     }
 
-    CURL *curl;
-    CURLcode res;
-    std::stringstream readBuffer;
-    std::string title = "";
-    long errorCode;
-
-    //Retrieving headers information first
-    curl = curl_easy_init();
-    if (!curl) {
-       LOG_ERROR("Failed to allocate curl object.");
-       return title;
-    }
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ::curlWriteCallBack);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
-    curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
-    res = curl_easy_perform(curl);
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &errorCode);
-    curl_easy_cleanup(curl);
-    if (res != CURLE_OK) {
-        LOG_ERROR("CURL request failed: " + std::string(curl_easy_strerror(res)));
-        return "";
+    long statusCode;
+    std::string response;
+    // Retrieve headers information first to check Content-Type
+    if (!sendHttpRequest(url, RequestType::HEADER, response, statusCode)) {
+        return false;
     }
 
-    // Only retrieve the title if we get a HTTP 200 code from the server
-    // AND the document we want to access is a web page
-    if (errorCode != 200l) {
-        return strHttpError(errorCode);
-    }
-    std::string contentType = getHttpHeaderField(readBuffer, "Content-Type");
-    if (contentType.find("text/html") == std::string::npos) {
-        return title;
+    std::string contentType = getHttpHeaderField(response, "Content-Type");
+    if (std::string::npos == contentType.find("text/html")) {
+        // Not a HTML document, that's an error
+        return false;
     }
 
-    //We can now retrieve the html
-    curl = curl_easy_init();
-    if (!curl) {
-       LOG_ERROR("Failed to allocate curl object.");
-       return title;
-    }
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ::curlWriteCallBack);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    res = curl_easy_perform(curl);
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &errorCode);
-    curl_easy_cleanup(curl);
-    if(res != CURLE_OK) {
-        return std::string(curl_easy_strerror(res));
-    }
-    if (errorCode != 200l) {
-        return strHttpError(errorCode);
+    if (statusCode != 200l) {
+        // HTML document with wrong HTTP code, we inform the user
+        pageTitle = strHttpError(statusCode);
+        return true;
     }
 
-    //parsing title
-    size_t pos = readBuffer.str().find("<title>") + 7;
-    size_t pos2 = readBuffer.str().find("</title>");
-
-    if (pos != std::string::npos && pos2 != std::string::npos) {
-        title = readBuffer.str().substr(pos, pos2 - pos);
+    // Retrieve body now that we are safe
+    if (!sendHttpRequest(url, RequestType::BODY, response, statusCode)) {
+        return false;
     }
-    return title;
+
+    pageTitle = extractTitleFromContent(response);
+
+    return true;
 }
 
 WebInfoRetriever::WebInfoRetriever()
@@ -110,6 +78,84 @@ WebInfoRetriever::WebInfoRetriever()
     } else {
         LOG_ERROR("Failed to initialize curl.");
     }
+}
+
+std::string WebInfoRetriever::extractTitleFromContent(const std::string &pageContent)
+{
+    size_t titleBegin = pageContent.find("<title>") + 7;
+    size_t titleEnd = pageContent.find("</title>");
+    if (std::string::npos == titleBegin || std::string::npos == titleEnd) {
+        return "";
+    }
+
+    std::string title = pageContent.substr(titleBegin, titleEnd - titleBegin);
+    // Filter out new line characters to keep title on a single line
+    char filteredChars[] = {'\r', '\n'};
+    for (char c : filteredChars) {
+        title.erase(std::remove(title.begin(), title.end(), c), title.end());
+    }
+
+    // TODO Remove extra white spaces
+
+    // Trim left
+    title.erase(title.begin(), std::find_if(title.begin(), title.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+    // Trim right
+    title.erase(std::find_if(title.rbegin(), title.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), title.end());
+
+    return _htmlEntitiesHelper.decode(title);
+}
+
+std::string WebInfoRetriever::getHttpHeaderField(const std::string &headers, const std::string& key)
+{
+    std::string value;
+    std::string line;
+
+    std::string pattern = std::string(key + ": ");
+
+    std::stringstream headersStream(headers);
+    while (std::getline(headersStream, line)) {
+        size_t o = line.find(pattern);
+        if (o != std::string::npos) {
+            value = line.substr(o + pattern.size());
+            break;
+        }
+    }
+
+    return value;
+}
+
+bool WebInfoRetriever::sendHttpRequest(const std::string &url, RequestType type, std::string &response, long& statusCode)
+{
+    CURL *curl;
+    CURLcode res;
+    std::stringstream readBuffer;
+
+    curl = curl_easy_init();
+    if (nullptr == curl) {
+        LOG_ERROR("Failed to allocate curl object.");
+        return false;
+    }
+
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ::curlWriteCallBack);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    if (RequestType::HEADER == type) {
+        curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
+        curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
+    }
+
+    res = curl_easy_perform(curl);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &statusCode);
+    curl_easy_cleanup(curl);
+    if (res != CURLE_OK) {
+        LOG_ERROR("CURL request failed: " + std::string(curl_easy_strerror(res)));
+        return false;
+    }
+
+    response = readBuffer.str();
+
+    return true;
 }
 
 std::string WebInfoRetriever::strHttpError(const long& errorCode)
@@ -148,24 +194,8 @@ std::string WebInfoRetriever::strHttpError(const long& errorCode)
     default:
         message << "No description available";
     }
+
     return message.str();
-}
-
-std::string WebInfoRetriever::getHttpHeaderField(std::stringstream& headers, const std::string& key)
-{
-    std::string value;
-    std::string line;
-
-    std::string pattern = std::string(key + ": ");
-
-    while (std::getline(headers, line)) {
-        size_t o = line.find(pattern);
-        if (o != std::string::npos) {
-            value = line.substr(o + pattern.size());
-            break;
-        }
-    }
-    return value;
 }
 
 }
