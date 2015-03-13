@@ -1,5 +1,5 @@
-#ifndef GEECXX_CURL_H
-#define GEECXX_CURL_H
+#ifndef GEECXX_WEB_INFO_RETRIEVER_H
+#define GEECXX_WEB_INFO_RETRIEVER_H
 
 #include <string>
 #include <sstream>
@@ -7,47 +7,42 @@
 namespace geecxx
 {
 
-class Curl
+class WebInfoRetriever
 {
 public:
     /**
      * Copy constructor (deleted)
      */
-    Curl(const Curl&) = delete;
+    WebInfoRetriever(const WebInfoRetriever&) = delete;
 
     /**
      * Move constructor (deleted)
      */
-    Curl(Curl &&) = delete;
+    WebInfoRetriever(WebInfoRetriever &&) = delete;
 
     /**
      * Copy assignment (deleted)
      */
-    Curl& operator=(const Curl&) = delete;
+    WebInfoRetriever& operator=(const WebInfoRetriever&) = delete;
 
     /**
       * Destructor
       */
-    ~Curl();
+    ~WebInfoRetriever();
 
     /**
      * Get singleton instance
      * @return singleton instance
      */
-    static Curl& getInstance();
+    static WebInfoRetriever& getInstance();
 
-    /**
-     *
-     * @param url
-     * @return
-     */
     std::string retrievePageTitle(const std::string& url);
 
 private:
     /**
      * Default constructor
      */
-    Curl();
+    WebInfoRetriever();
 
     std::string strHttpError(const long& errorCode);
     std::string getHttpHeaderField(std::stringstream& headers, const std::string& key);
@@ -57,4 +52,4 @@ private:
 
 }
 
-#endif //GEECXX_CURL_H
+#endif //GEECXX_WEB_INFO_RETRIEVER_H

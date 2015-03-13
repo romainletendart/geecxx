@@ -30,7 +30,7 @@ set(GEECXX_SRCS main.cpp
     htmlentitieshelper.cpp
     logger.cpp
     bot.cpp
-    curl.cpp
+    webinforetriever.cpp
 )
 
 

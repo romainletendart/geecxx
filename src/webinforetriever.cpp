@@ -1,7 +1,7 @@
 #include <sstream>
 #include <string>
 #include <curl/curl.h>
-#include "curl.h"
+#include "webinforetriever.h"
 #include "logger.h"
 
 namespace
@@ -18,19 +18,19 @@ static size_t curlWriteCallBack(void *contents, size_t size, size_t nmemb, void 
 namespace geecxx
 {
 
-Curl::~Curl()
+WebInfoRetriever::~WebInfoRetriever()
 {
     curl_global_cleanup();
 }
 
-Curl& Curl::getInstance()
+WebInfoRetriever& WebInfoRetriever::getInstance()
 {
     // Static variable initialization ensures threadsafety in C++11 standard
-    static Curl curl;
-    return curl;
+    static WebInfoRetriever webInfoRetriever;
+    return webInfoRetriever;
 }
 
-std::string Curl::retrievePageTitle(const std::string& url)
+std::string WebInfoRetriever::retrievePageTitle(const std::string& url)
 {
     if (!_isInitiliazed) {
         return "Unable to retrieve page title (please check the logs).";
@@ -71,7 +71,7 @@ std::string Curl::retrievePageTitle(const std::string& url)
     if (contentType.find("text/html") == std::string::npos) {
         return title;
     }
-    
+
     //We can now retrieve the html
     curl = curl_easy_init();
     if (!curl) {
@@ -102,7 +102,7 @@ std::string Curl::retrievePageTitle(const std::string& url)
     return title;
 }
 
-Curl::Curl()
+WebInfoRetriever::WebInfoRetriever()
 {
     if (CURLE_OK == curl_global_init(CURL_GLOBAL_DEFAULT))
     {
@@ -112,7 +112,7 @@ Curl::Curl()
     }
 }
 
-std::string Curl::strHttpError(const long& errorCode)
+std::string WebInfoRetriever::strHttpError(const long& errorCode)
 {
     std::stringstream message;
     message << "HTTP " << errorCode << " - ";
@@ -151,7 +151,7 @@ std::string Curl::strHttpError(const long& errorCode)
     return message.str();
 }
 
-std::string Curl::getHttpHeaderField(std::stringstream& headers, const std::string& key)
+std::string WebInfoRetriever::getHttpHeaderField(std::stringstream& headers, const std::string& key)
 {
     std::string value;
     std::string line;

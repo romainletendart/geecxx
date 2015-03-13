@@ -13,7 +13,7 @@
 
 #include "connection.h"
 #include "logger.h"
-#include "curl.h"
+#include "webinforetriever.h"
 
 namespace geecxx
 {
@@ -161,7 +161,7 @@ void Bot::_readHandler(const std::string& message)
 
 std::string Bot::_getTitleFromUrl(const std::string& url)
 {
-    std::string title = Curl::getInstance().retrievePageTitle(url);
+    std::string title = WebInfoRetriever::getInstance().retrievePageTitle(url);
 
     // Filter out new line characters to keep title on a single line
     char filteredChars[] = {'\r', '\n'};
