@@ -134,13 +134,20 @@ void Bot::_readHandler(const std::string& message)
         std::string result;
         if (_parseURL(message, result)) {
             LOG_DEBUG("Found URL: " + result);
-            std::stringstream title;
-            title << _htmlEntitiesHelper.decode(_getTitleFromUrl(result)) << " (URL#" << _getNextUrlId() << ")";
+            std::string title = _htmlEntitiesHelper.decode(_getTitleFromUrl(result));
+
+            if ("" == title) {
+                // Nothing interesting to be returned to the user
+                return;
+            }
+
+            std::stringstream titleOutput;
+            titleOutput << title << " (URL#" << _getNextUrlId() << ")";
 
             if (recipient == _currentChannel) {
-                say(title.str());
+                say(titleOutput.str());
             } else {
-                msg(sender, title.str());
+                msg(sender, titleOutput.str());
             }
         }
     } else if (command == "PING") {

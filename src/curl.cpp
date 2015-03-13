@@ -39,7 +39,7 @@ std::string Curl::retrievePageTitle(const std::string& url)
     CURL *curl;
     CURLcode res;
     std::stringstream readBuffer;
-    std::string title = "Untitled";
+    std::string title = "";
     long errorCode;
 
     //Retrieving headers information first
@@ -58,8 +58,12 @@ std::string Curl::retrievePageTitle(const std::string& url)
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &errorCode);
     curl_easy_cleanup(curl);
     if (res != CURLE_OK) {
-        return std::string(curl_easy_strerror(res));
+        LOG_ERROR("CURL request failed: " + std::string(curl_easy_strerror(res)));
+        return "";
     }
+
+    // Only retrieve the title if we get a HTTP 200 code from the server
+    // AND the document we want to access is a web page
     if (errorCode != 200l) {
         return strHttpError(errorCode);
     }
@@ -111,35 +115,38 @@ Curl::Curl()
 std::string Curl::strHttpError(const long& errorCode)
 {
     std::stringstream message;
-    message << errorCode << " - ";
+    message << "HTTP " << errorCode << " - ";
 
     switch (errorCode) {
-        case 400l:
-            message << "Bad Request";
-            break;
-        case 401l:
-            message << "Unauthorized";
-            break;
-        case 403l:
-            message << "Forbidden";
-            break;
-        case 404l:
-            message << "Not Found";
-            break;
-        case 500l:
-            message << "Internal Server Error";
-            break;
-        case 502l:
-            message << "Bad Gateway";
-            break;
-        case 503l:
-            message << "Service Unavailable";
-            break;
-        case 504l:
-            message << "Bad Gateway";
-            break;
-        default:
-            message << "The internet is your friend";
+    case 400l:
+        message << "Bad Request";
+        break;
+    case 401l:
+        message << "Unauthorized";
+        break;
+    case 403l:
+        message << "Forbidden";
+        break;
+    case 404l:
+        message << "Not Found";
+        break;
+    case 429l:
+        message << "Too many requests";
+        break;
+    case 500l:
+        message << "Internal Server Error";
+        break;
+    case 502l:
+        message << "Bad Gateway";
+        break;
+    case 503l:
+        message << "Service Unavailable";
+        break;
+    case 504l:
+        message << "Bad Gateway";
+        break;
+    default:
+        message << "No description available";
     }
     return message.str();
 }
