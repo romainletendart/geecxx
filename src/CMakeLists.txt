@@ -31,6 +31,7 @@ set(GEECXX_SRCS main.cpp
     logger.cpp
     bot.cpp
     webinforetriever.cpp
+    stringutils.cpp
 )
 
 

@@ -1,12 +1,11 @@
 #include "webinforetriever.h"
 
-#include <algorithm>
 #include <curl/curl.h>
-#include <functional>
 #include <sstream>
 #include <string>
 
 #include "logger.h"
+#include "stringutils.h"
 
 namespace
 {
@@ -89,18 +88,7 @@ std::string WebInfoRetriever::extractTitleFromContent(const std::string &pageCon
     }
 
     std::string title = pageContent.substr(titleBegin, titleEnd - titleBegin);
-    // Filter out new line characters to keep title on a single line
-    char filteredChars[] = {'\r', '\n'};
-    for (char c : filteredChars) {
-        title.erase(std::remove(title.begin(), title.end(), c), title.end());
-    }
-
-    // TODO Remove extra white spaces
-
-    // Trim left
-    title.erase(title.begin(), std::find_if(title.begin(), title.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
-    // Trim right
-    title.erase(std::find_if(title.rbegin(), title.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), title.end());
+    stringutils::formatInline(title);
 
     return _htmlEntitiesHelper.decode(title);
 }
