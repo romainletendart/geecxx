@@ -81,16 +81,20 @@ WebInfoRetriever::WebInfoRetriever()
 
 std::string WebInfoRetriever::extractTitleFromContent(const std::string &pageContent)
 {
-    size_t titleBegin = pageContent.find("<title>") + 7;
-    size_t titleEnd = pageContent.find("</title>");
+    size_t titleBegin = stringutils::findNoCase(pageContent, "<title>") + 7;
+    size_t titleEnd = stringutils::findNoCase(pageContent, "</title>");
     if (std::string::npos == titleBegin || std::string::npos == titleEnd) {
         return "";
     }
 
     std::string title = pageContent.substr(titleBegin, titleEnd - titleBegin);
+
+    title = _htmlEntitiesHelper.decode(title);
+    // Inline formatting should happen after HTML entities decoding that may
+    // bring extra white spaces
     stringutils::formatInline(title);
 
-    return _htmlEntitiesHelper.decode(title);
+    return title;
 }
 
 std::string WebInfoRetriever::getHttpHeaderField(const std::string &headers, const std::string& key)
@@ -102,7 +106,7 @@ std::string WebInfoRetriever::getHttpHeaderField(const std::string &headers, con
 
     std::stringstream headersStream(headers);
     while (std::getline(headersStream, line)) {
-        size_t o = line.find(pattern);
+        size_t o = stringutils::findNoCase(line, pattern);
         if (o != std::string::npos) {
             value = line.substr(o + pattern.size());
             break;

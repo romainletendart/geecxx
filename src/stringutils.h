@@ -30,6 +30,17 @@ namespace stringutils
 {
 
 /**
+ * Finds pattern in a string (no case-sensitive)
+ *
+ * @note similar to std::string::find
+ * @param haystack string in which the pattern should be searched for
+ * @param needle string to search for
+ * @return position of the first character of the first match or
+ *         std::string::npos if the pattern couldn't be found
+ */
+size_t findNoCase(const std::string& haystack, const std::string& needle);
+
+/**
  * Make a string displayable on a single line
  *
  * Replace any space character such like '\n', '\r', '\t', '\v', '\f' or ' '

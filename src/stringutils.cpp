@@ -27,12 +27,29 @@
 #include <algorithm>
 #include <cstring>
 #include <functional>
+#include <iterator>
 #include <sstream>
 
 namespace geecxx
 {
 namespace stringutils
 {
+
+size_t findNoCase(const std::string& haystack, const std::string& needle)
+{
+    size_t needleIndex = std::string::npos;
+    auto it = std::search(
+      haystack.begin(), haystack.end(),
+      needle.begin(),   needle.end(),
+      [](char c1, char c2) { return std::toupper(c1) == std::toupper(c2); }
+    );
+
+    if (it != haystack.end()) {
+        needleIndex = std::distance(haystack.begin(), it);
+    }
+
+    return needleIndex;
+}
 
 void formatInline(std::string& s)
 {

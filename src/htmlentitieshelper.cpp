@@ -2201,7 +2201,7 @@ std::string HTMLEntitiesHelper::decode(std::string input)
         entityStart = input.find_first_of('&', currentPos);
     }
 
-    return input;
+    return std::move(input);
 }
 
 std::string HTMLEntitiesHelper::fromCode(std::string code)
