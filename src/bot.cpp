@@ -132,13 +132,32 @@ void Bot::_readHandler(const std::string& message)
         std::string urlCandidate;
         if (_parseURL(message, urlCandidate)) {
             LOG_DEBUG("Found URL: " + urlCandidate);
-            std::string title;
-            if (!WebInfoRetriever::getInstance().retrievePageTitle(urlCandidate, title) || "" == title) {
-                return;
+
+            UrlHistoryEntry historyEntry;
+            bool alreadyPosted = _urlHistory.find(urlCandidate, historyEntry);
+            if (!alreadyPosted) {
+                // First time the URL has been posted, we first need to
+                // retrieve the title
+                std::string title;
+                if (!WebInfoRetriever::getInstance().retrievePageTitle(urlCandidate, title)) {
+                    title = "";
+                } // else title already set
+
+                // Add the URL to our history
+                _urlHistory.insert(urlCandidate, title, sender);
+                _urlHistory.find(urlCandidate, historyEntry);
             }
 
             std::stringstream titleOutput;
-            titleOutput << title << " (URL#" << _getNextUrlId() << ")";
+            if (historyEntry._title != "") {
+                titleOutput << historyEntry._title << " (URL#" << historyEntry._id << ")";
+            }
+
+            if (alreadyPosted) {
+                titleOutput << std::endl << sender << ": Already posted by " << historyEntry._messageAuthor;
+                titleOutput << " (URL#" << historyEntry._id << ")";
+            }
+
             if (recipient == _currentChannel) {
                 say(titleOutput.str());
             } else {
@@ -152,19 +171,6 @@ void Bot::_readHandler(const std::string& message)
         pong(host);
     }
 
-}
-
-uint16_t Bot::_getNextUrlId()
-{
-    uint16_t urlId = _nextUrlId;
-
-    if (_nextUrlId < UINT16_MAX) {
-        _nextUrlId++;
-    } else {
-        _nextUrlId = 1;
-    }
-
-    return urlId;
 }
 
 void Bot::_writeHandler()

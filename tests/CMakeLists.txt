@@ -34,9 +34,15 @@ set(CONNECTION_TEST_SRCS
     ${Geecxx_SOURCE_DIR}/src/connection.cpp
 )
 
+set(URL_HISTORY_MANAGER_TEST_SRCS
+    urlhistorymanagertest.cpp
+    ${Geecxx_SOURCE_DIR}/src/urlhistorymanager.cpp
+)
+
 set(GEECXXTEST_SRCS main.cpp
     ${Geecxx_SOURCE_DIR}/src/logger.cpp
     ${CONNECTION_TEST_SRCS}
+    ${URL_HISTORY_MANAGER_TEST_SRCS}
 )
 
 

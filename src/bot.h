@@ -1,13 +1,13 @@
 #ifndef GEECXX_BOT_H
 #define GEECXX_BOT_H
 
-#include <cstdint>
 #include <memory>
 #include <string>
 #include <sstream>
 
 #include "configurationprovider.h"
 #include "connection.h"
+#include "urlhistorymanager.h"
 
 namespace geecxx
 {
@@ -31,12 +31,10 @@ private:
     void _readHandler(const std::string& message);
     void _writeHandler(void);
 
-    uint16_t _getNextUrlId();
-
     std::unique_ptr<Connection> _connection;
+    UrlHistoryManager _urlHistory;
     std::string _currentChannel;
     std::string _nickname;
-    uint16_t _nextUrlId = 1;
 };
 
 }

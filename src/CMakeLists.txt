@@ -32,6 +32,7 @@ set(GEECXX_SRCS main.cpp
     bot.cpp
     webinforetriever.cpp
     stringutils.cpp
+    urlhistorymanager.cpp
 )
 
 
