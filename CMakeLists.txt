@@ -21,11 +21,13 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 2.8)
 
 project(Geecxx)
 
 set(TARGET "geecxx")
+
+include(GNUInstallDirs) # Provides standard variables for specifying install paths (defaulting to Linux standards)
 
 # Options
 option(WITH_TESTS "Generate tests binaries and data" OFF)
@@ -48,6 +50,10 @@ if(NOT WITH_LOG_LEVEL)
     set(WITH_LOG_LEVEL 1 CACHE STRING "Log level threshold (0=DEBUG;1=INFO;2=WARNING;3=ERROR)")
 endif()
 
+set(GEECXX_BIN_DIR        "${CMAKE_INSTALL_FULL_BINDIR}")
+set(GEECXX_LOCAL_DATA_DIR "${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/${TARGET}")
+
+configure_file(${Geecxx_SOURCE_DIR}/src/globalconfig.h.in ${Geecxx_BINARY_DIR}/src/globalconfig.h)
 configure_file(${Geecxx_SOURCE_DIR}/src/loggerconfig.h.in ${Geecxx_BINARY_DIR}/src/loggerconfig.h)
 
 add_subdirectory(src)
