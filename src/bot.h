@@ -25,11 +25,12 @@ public:
     void msg(const std::string& receiver, const std::string& message);
     void pong(const std::string& message);
     void quit();
+
 private:
-    bool _parseURL(const std::string& message, std::string& result);
-    std::istringstream& _skipToContent(std::istringstream& iss);
-    void _readHandler(const std::string& message);
-    void _writeHandler(void);
+    bool parseURL(const std::string& message, std::string& result);
+    std::istringstream& skipToContent(std::istringstream& iss);
+    void readHandler(const std::string& message);
+    void writeHandler(void);
 
     std::unique_ptr<Connection> _connection;
     UrlHistoryManager _urlHistory;

@@ -6,10 +6,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-#include <vector>
-#include <curl/curl.h>
 
-#include "connection.h"
 #include "logger.h"
 #include "webinforetriever.h"
 
@@ -35,9 +32,9 @@ bool Bot::init(const ConfigurationProvider& configuration)
         return false;
     }
     _connection->setExternalReadHandler([this](const std::string& m){
-        this->_readHandler(m);
+        this->readHandler(m);
     });
-    _connection->setExternalWriteHandler([this]() { _writeHandler(); });
+    _connection->setExternalWriteHandler([this]() { writeHandler(); });
     if(!_connection->open()) {
         return false;
     }
@@ -93,7 +90,7 @@ void Bot::quit()
     _connection->writeMessage(std::string("QUIT : Shutting down."));
 }
 
-std::istringstream& Bot::_skipToContent(std::istringstream& iss)
+std::istringstream& Bot::skipToContent(std::istringstream& iss)
 {
     char c = 0;
     while(!iss.eof() && c != ':') {
@@ -102,7 +99,7 @@ std::istringstream& Bot::_skipToContent(std::istringstream& iss)
     return iss;
 }
 
-void Bot::_readHandler(const std::string& message)
+void Bot::readHandler(const std::string& message)
 {
     LOG_DEBUG("Reading: " + message);
 
@@ -119,7 +116,7 @@ void Bot::_readHandler(const std::string& message)
             iss >> command;
         }
     }
-    
+
     if (command == "PRIVMSG") {
         std::string recipient;
         iss >> recipient;
@@ -128,9 +125,9 @@ void Bot::_readHandler(const std::string& message)
         if(recipient == _nickname) {
             return;
         }
-        
+
         std::string urlCandidate;
-        if (_parseURL(message, urlCandidate)) {
+        if (parseURL(message, urlCandidate)) {
             LOG_DEBUG("Found URL: " + urlCandidate);
 
             UrlHistoryEntry historyEntry;
@@ -165,7 +162,7 @@ void Bot::_readHandler(const std::string& message)
             }
         }
     } else if (command == "PING") {
-        _skipToContent(iss);
+        skipToContent(iss);
         std::string host;
         iss >> host;
         pong(host);
@@ -173,7 +170,7 @@ void Bot::_readHandler(const std::string& message)
 
 }
 
-void Bot::_writeHandler()
+void Bot::writeHandler()
 {
     std::string line, comm;
     while (_connection->isAlive()) {
@@ -204,7 +201,7 @@ void Bot::_writeHandler()
     }
 }
 
-bool Bot::_parseURL(const std::string& message, std::string& result)
+bool Bot::parseURL(const std::string& message, std::string& result)
 {
     boost::regex urlRegex;
     try {
@@ -213,7 +210,7 @@ bool Bot::_parseURL(const std::string& message, std::string& result)
         urlRegex.assign(R"((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))",
                          boost::regex::ECMAScript);
     } catch(boost::regex_error& error) {
-        std::cerr << "Invalid regular expression: " << error.what() << std::endl;
+        LOG_ERROR("Invalid regular expression: " + std::string(error.what()));
         return false;
     }
 
