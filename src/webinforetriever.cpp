@@ -141,7 +141,8 @@ bool WebInfoRetriever::sendHttpRequest(const std::string &url, RequestType type,
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &statusCode);
     curl_easy_cleanup(curl);
     if (res != CURLE_OK) {
-        LOG_ERROR("CURL request failed: " + std::string(curl_easy_strerror(res)));
+        LOG_ERROR("CURL request failed for URL: " + url);
+        LOG_ERROR("Reason: " + std::string(curl_easy_strerror(res)));
         return false;
     }
 
