@@ -25,7 +25,10 @@ project(GeecxxTest)
 
 set(TARGET "geecxx-test")
 
-include_directories (${Geecxx_SOURCE_DIR}/src ${Geecxx_BINARY_DIR}/src)
+set(GEECXX_TEST_DATA_DIR  "${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/${TARGET}/")
+configure_file(${GeecxxTest_SOURCE_DIR}/testconfig.h.in ${GeecxxTest_BINARY_DIR}/testconfig.h)
+
+include_directories (${Geecxx_SOURCE_DIR}/src ${Geecxx_BINARY_DIR}/src ${GeecxxTest_BINARY_DIR})
 include_directories(${CPPUNIT_INCLUDE_DIRS})
 link_directories(${CPPUNIT_LIBRARY_DIRS})
 
@@ -50,3 +53,4 @@ add_executable(${TARGET} ${GEECXXTEST_SRCS})
 target_link_libraries(${TARGET} ${CPPUNIT_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 install (TARGETS ${TARGET} DESTINATION bin)
+install(DIRECTORY DESTINATION ${GEECXX_TEST_DATA_DIR})

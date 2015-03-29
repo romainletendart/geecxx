@@ -25,11 +25,13 @@
 #include "urlhistorymanager.h"
 
 #include <algorithm>
+#include <fstream>
 
 namespace geecxx
 {
 
-UrlHistoryManager::UrlHistoryManager(size_t maxSize) : _maxSize(maxSize)
+UrlHistoryManager::UrlHistoryManager(size_t maxSize, std::string historyFilePath)
+    : _maxSize(maxSize), _historyFilePath(historyFilePath)
 {
 }
 
@@ -54,11 +56,11 @@ bool UrlHistoryManager::insert(const std::string& url, std::string title, std::s
     if (getSize() == getMaxSize()) {
         // Retrieve oldest entry and remove it from our history
         _entries.erase(_history.front());
-        _history.pop();
+        _history.pop_front();
     }
 
     UrlHistoryEntry newEntry{getNextId(), std::move(title), std::move(messageAuthor)};
-    _history.push(formattedUrl);
+    _history.push_back(formattedUrl);
     _entries.emplace(std::move(formattedUrl), std::move(newEntry));
 
     return true;
@@ -79,9 +81,70 @@ bool UrlHistoryManager::find(const std::string& url, UrlHistoryEntry& entry)
 void UrlHistoryManager::clear()
 {
     _entries.clear();
-    while (!_history.empty()) {
-        _history.pop();
+    _history.clear();
+    _nextId = 1;
+}
+
+bool UrlHistoryManager::initFromFile()
+{
+    std::ifstream historyFile(_historyFilePath);
+
+    if (!historyFile) {
+        // File doesn't exist so there is nothing to read here
+        return true;
     }
+
+    while (historyFile.good()) {
+        std::string url;
+        std::string title;
+        std::string messageAuthor;
+
+        if (!std::getline(historyFile, url)) {
+            LOG_ERROR("Unable to read url from history file");
+            return false;
+        }
+        if (!std::getline(historyFile, title)) {
+            LOG_ERROR("Unable to read title from history file");
+            return false;
+        }
+        if (!std::getline(historyFile, messageAuthor)) {
+            LOG_ERROR("Unable to read message author from history file");
+            return false;
+        }
+        if (!insert(url, title, messageAuthor)) {
+            LOG_ERROR("Unable to insert into history URL: " + url);
+            return false;
+        }
+        if (!historyFile.peek()) {
+            // We reached eof
+            break;
+        }
+    }
+
+    return true;
+}
+
+bool UrlHistoryManager::saveToFile()
+{
+    std::ofstream historyFile(_historyFilePath, std::ios_base::trunc);
+
+    if (!historyFile) {
+        LOG_ERROR("Couldn't open URL history file for writing.");
+        return false;
+    }
+
+    for (const std::string& url : _history) {
+        UrlHistoryEntry entry;
+        if (!find(url, entry)) {
+            LOG_ERROR("Couldn't find history entry for URL: " + url);
+            continue;
+        }
+        historyFile << url << std::endl;
+        historyFile << entry._title << std::endl;
+        historyFile << entry._messageAuthor << std::endl;
+    }
+
+    return true;
 }
 
 size_t UrlHistoryManager::getNextId()

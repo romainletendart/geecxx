@@ -22,36 +22,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef GEECXX_TESTS_CONNECTION_TEST_H
-#define GEECXX_TESTS_CONNECTION_TEST_H
-
-#include <cppunit/extensions/HelperMacros.h>
-#include <cppunit/TestFixture.h>
+#ifndef GEECXX_TEST_CONFIG_H
+#define GEECXX_TEST_CONFIG_H
 
 namespace geecxx
 {
 
-class UrlHistoryManagerTest : public CPPUNIT_NS::TestFixture
-{
-    CPPUNIT_TEST_SUITE(UrlHistoryManagerTest);
-    CPPUNIT_TEST(testAll);
-    CPPUNIT_TEST(testSimilarUrls);
-    CPPUNIT_TEST(testInitFromSaveToFile);
-    CPPUNIT_TEST_SUITE_END();
-
-public:
-    UrlHistoryManagerTest() = default;
-    ~UrlHistoryManagerTest() = default;
-
-    void setUp();
-    void tearDown();
-
-    // Actual tests
-    void testAll();
-    void testSimilarUrls();
-    void testInitFromSaveToFile();
-};
+#define GEECXX_TEST_DATA_DIR "@GEECXX_TEST_DATA_DIR@"
 
 }
 
-#endif // GEECXX_TESTS_CONNECTION_TEST_H
+#endif // GEECXX_TEST_CONFIG_H

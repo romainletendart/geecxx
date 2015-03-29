@@ -50,8 +50,8 @@ if(NOT WITH_LOG_LEVEL)
     set(WITH_LOG_LEVEL 1 CACHE STRING "Log level threshold (0=DEBUG;1=INFO;2=WARNING;3=ERROR)")
 endif()
 
-set(GEECXX_BIN_DIR        "${CMAKE_INSTALL_FULL_BINDIR}")
-set(GEECXX_LOCAL_DATA_DIR "${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/${TARGET}")
+set(GEECXX_BIN_DIR        "${CMAKE_INSTALL_FULL_BINDIR}/")
+set(GEECXX_LOCAL_DATA_DIR "${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/${TARGET}/")
 
 configure_file(${Geecxx_SOURCE_DIR}/src/globalconfig.h.in ${Geecxx_BINARY_DIR}/src/globalconfig.h)
 configure_file(${Geecxx_SOURCE_DIR}/src/loggerconfig.h.in ${Geecxx_BINARY_DIR}/src/loggerconfig.h)

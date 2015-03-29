@@ -27,6 +27,9 @@ Bot::~Bot()
 
 bool Bot::init(const ConfigurationProvider& configuration)
 {
+    if (!_urlHistory.initFromFile()) {
+        return false;
+    }
     _connection.reset(new Connection(configuration.getServer(), std::to_string(configuration.getPortNumber())));
     if (!_connection) {
         return false;
@@ -87,6 +90,7 @@ void Bot::pong(const std::string& serverName)
 
 void Bot::quit()
 {
+    _urlHistory.saveToFile();
     _connection->writeMessage(std::string("QUIT : Shutting down."));
 }
 

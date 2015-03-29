@@ -24,6 +24,8 @@
  */
 #include "urlhistorymanagertest.h"
 
+#include "testconfig.h"
+
 #include "urlhistorymanager.h"
 
 namespace geecxx
@@ -111,6 +113,41 @@ void UrlHistoryManagerTest::testSimilarUrls()
     // Resource name should not be case sensitive
     CPPUNIT_ASSERT_EQUAL(true, history.insert("HTTP://WWW.WEBSITE.COM/RESOURCE1", "", ""));
     CPPUNIT_ASSERT_EQUAL(true, history.insert("HTTP://WWW.WEBSITE.COM/resource1", "", ""));
+}
+
+void UrlHistoryManagerTest::testInitFromSaveToFile()
+{
+    UrlHistoryManager history(8, std::string(GEECXX_TEST_DATA_DIR) + "url-history-test.txt");
+
+    const std::string urlA = "http://www.websiteA.com/";
+    const std::string urlB = "http://www.websiteB.com/";
+    const UrlHistoryEntry expectedEntryA = { 1, "Title A", "Author A"};
+    const UrlHistoryEntry expectedEntryB = { 2, "Title B", "Author B"};
+
+    CPPUNIT_ASSERT_EQUAL(true, history.insert(urlA, expectedEntryA._title,
+                         expectedEntryA._messageAuthor));
+    CPPUNIT_ASSERT_EQUAL(true, history.insert(urlB, expectedEntryB._title,
+                         expectedEntryB._messageAuthor));
+    CPPUNIT_ASSERT_EQUAL(true, history.saveToFile());
+
+    history.clear();
+    CPPUNIT_ASSERT_EQUAL(size_t(0), history.getSize());
+
+    CPPUNIT_ASSERT_EQUAL(true, history.initFromFile());
+    CPPUNIT_ASSERT_EQUAL(size_t(2), history.getSize());
+
+    UrlHistoryEntry readEntryA;
+    UrlHistoryEntry readEntryB;
+    CPPUNIT_ASSERT_EQUAL(true, history.find(urlA, readEntryA));
+    CPPUNIT_ASSERT_EQUAL(true, history.find(urlB, readEntryB));
+
+    CPPUNIT_ASSERT_EQUAL(expectedEntryA._id, readEntryA._id);
+    CPPUNIT_ASSERT_EQUAL(expectedEntryA._title, readEntryA._title);
+    CPPUNIT_ASSERT_EQUAL(expectedEntryA._messageAuthor, readEntryA._messageAuthor);
+
+    CPPUNIT_ASSERT_EQUAL(expectedEntryB._id, readEntryB._id);
+    CPPUNIT_ASSERT_EQUAL(expectedEntryB._title, readEntryB._title);
+    CPPUNIT_ASSERT_EQUAL(expectedEntryB._messageAuthor, readEntryB._messageAuthor);
 }
 
 }

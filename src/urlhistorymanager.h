@@ -22,9 +22,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <fstream>
+#include <list>
 #include <map>
-#include <queue>
 #include <string>
+
+#include "globalconfig.h"
+
+#include "logger.h"
 
 namespace geecxx
 {
@@ -44,7 +49,9 @@ public:
      *
      * @param maxSize maximum number of elements in the history
      */
-    UrlHistoryManager(size_t maxSize = 512);
+    UrlHistoryManager(size_t maxSize = 512,
+                     std::string historyFilePath = std::string(
+                        GEECXX_LOCAL_DATA_DIR) + "url-history.txt");
 
     /**
      * Get maximum size of the history
@@ -84,6 +91,20 @@ public:
      */
     void clear();
 
+    /**
+     * Read history data from the disk into our current history
+     *
+     * @return true upon successful reading of the file
+     */
+    bool initFromFile();
+
+    /**
+     * Save current history data into a file
+     *
+     * @return true upon successful writing of history data
+     */
+    bool saveToFile();
+
 private:
     /**
      * Return id not yet used by any element
@@ -111,6 +132,11 @@ private:
     const size_t _maxSize;
 
     /**
+     * Path to the file that is used for url history data persistence
+     */
+    const std::string _historyFilePath;
+
+    /**
      * Id to be used for new element to be inserted
      */
     size_t _nextId = 1;
@@ -124,7 +150,7 @@ private:
     /**
      * Keeps track of the order in which entries were inserted
      */
-    std::queue<std::string> _history;
+    std::list<std::string> _history;
 };
 
 }
