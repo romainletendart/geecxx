@@ -19,10 +19,7 @@ Bot::Bot()
 
 Bot::~Bot()
 {
-    if (_connection) {
-        quit();
-        _connection->close();
-    }
+    quit();
 }
 
 bool Bot::init(const ConfigurationProvider& configuration)
@@ -91,7 +88,10 @@ void Bot::pong(const std::string& serverName)
 void Bot::quit()
 {
     _urlHistory.saveToFile();
-    _connection->writeMessage(std::string("QUIT : Shutting down."));
+    if (_connection && _connection->isAlive()) {
+        _connection->writeMessage(std::string("QUIT : Shutting down."));
+        _connection->close();
+    }
 }
 
 std::istringstream& Bot::skipToContent(std::istringstream& iss)
@@ -177,7 +177,8 @@ void Bot::readHandler(const std::string& message)
 void Bot::writeHandler()
 {
     std::string line, comm;
-    while (_connection->isAlive()) {
+    bool running = true;
+    while (_connection->isAlive() && running) {
         std::getline(std::cin, line);
         std::istringstream iss(line);
         iss >> comm;
@@ -201,8 +202,10 @@ void Bot::writeHandler()
         } else if (comm == "/q") {
             iss >> comm;
             quit();
+            running = false;
         }
     }
+    LOG_INFO("Geecxx stopped.");
 }
 
 bool Bot::parseURL(const std::string& message, std::string& result)
