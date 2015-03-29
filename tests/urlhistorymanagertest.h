@@ -35,6 +35,7 @@ class UrlHistoryManagerTest : public CPPUNIT_NS::TestFixture
 {
     CPPUNIT_TEST_SUITE(UrlHistoryManagerTest);
     CPPUNIT_TEST(testAll);
+    CPPUNIT_TEST(testSimilarUrls);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -46,6 +47,7 @@ public:
 
     // Actual tests
     void testAll();
+    void testSimilarUrls();
 };
 
 }

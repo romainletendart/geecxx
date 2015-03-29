@@ -61,12 +61,14 @@ public:
     /**
      * Insert a new entry in the history
      *
+     * A same URL cannot be inserted more than once. Doing so will fail and
+     * return false.
      * @param[in] url url to be used as the key of the new element
      * @param[in] title title associated to the given url
      * @param[in] messageAuthor author of the message that contains the given url
      * @return true upon successful insertion, false otherwise
      */
-    bool insert(std::string url, std::string title, std::string messageAuthor);
+    bool insert(const std::string& url, std::string title, std::string messageAuthor);
 
     /**
      * Find an entry in the history
@@ -90,6 +92,18 @@ private:
      * @return id not yet used by any element
      */
     size_t getNextId();
+
+    /**
+     * Return formatted and minimized URL
+     *
+     * The idea behind this function is to minimize URLs by removing
+     * protocol information (http(s)://), "www" and fragments (#fragment-id)
+     * from them. It also sets the URL to lowercase (only for domain name
+     * part).
+     * @param[in] url url that will be formatted
+     * @return formatted and minimized URL
+     */
+    std::string formatUrl(const std::string& url);
 
     /**
      * Maximum size of the history

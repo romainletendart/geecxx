@@ -43,11 +43,12 @@ void UrlHistoryManagerTest::tearDown()
 void UrlHistoryManagerTest::testAll()
 {
     UrlHistoryManager history;
+    const std::string urlPrefix = "http://www.website.com/page";
 
     // Test if we can still insert elements after reaching MaxSize
     // (should be possible)
     for (size_t i = 1; i <= 2 * history.getMaxSize(); ++i) {
-        std::string url = "URL_" + std::to_string(i);
+        std::string url = urlPrefix + std::to_string(i);
         std::string title = "Title_" + std::to_string(i);
         std::string messageAuthor = "Author_" + std::to_string(i);
         UrlHistoryEntry entry;
@@ -65,7 +66,7 @@ void UrlHistoryManagerTest::testAll()
 
     // Half of the elements we inserted should not exist anymore
     for (size_t i = 1; i <= history.getMaxSize(); ++i) {
-        std::string url = "URL_" + std::to_string(i);
+        std::string url = urlPrefix + std::to_string(i);
         UrlHistoryEntry entry;
         CPPUNIT_ASSERT_EQUAL(false, history.find(url, entry));
     }
@@ -74,7 +75,7 @@ void UrlHistoryManagerTest::testAll()
     for (size_t i = history.getMaxSize() + 1;
          i <= 2 * history.getMaxSize();
          ++i) {
-        std::string url = "URL_" + std::to_string(i);
+        std::string url = urlPrefix + std::to_string(i);
         std::string expectedTitle = "Title_" + std::to_string(i);
         UrlHistoryEntry entry;
         CPPUNIT_ASSERT_EQUAL(true, history.find(url, entry));
@@ -86,6 +87,30 @@ void UrlHistoryManagerTest::testAll()
 
     history.clear();
     CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), history.getSize());
+}
+
+void UrlHistoryManagerTest::testSimilarUrls()
+{
+    UrlHistoryManager history;
+
+    // After execution of next line, every insertion of a similar URL should fail
+    CPPUNIT_ASSERT_EQUAL(true, history.insert("http://www.website.com/", "", ""));
+    // Using https instead of http
+    CPPUNIT_ASSERT_EQUAL(false, history.insert("https://www.website.com/", "", ""));
+    // Omitting the protocol
+    CPPUNIT_ASSERT_EQUAL(false, history.insert("www.website.com/", "", ""));
+    // Specifying the protocol, omitting "www"
+    CPPUNIT_ASSERT_EQUAL(false, history.insert("http://website.com/", "", ""));
+    CPPUNIT_ASSERT_EQUAL(false, history.insert("https://website.com/", "", ""));
+    // Omitting both protocol and "www"
+    CPPUNIT_ASSERT_EQUAL(false, history.insert("website.com/", "", ""));
+    // Adding fragment
+    CPPUNIT_ASSERT_EQUAL(false, history.insert("http://www.website.com/#fragment-id", "", ""));
+    // Uppercase protocol and domain name
+    CPPUNIT_ASSERT_EQUAL(false, history.insert("HTTP://WWW.WEBSITE.COM/", "", ""));
+    // Resource name should not be case sensitive
+    CPPUNIT_ASSERT_EQUAL(true, history.insert("HTTP://WWW.WEBSITE.COM/RESOURCE1", "", ""));
+    CPPUNIT_ASSERT_EQUAL(true, history.insert("HTTP://WWW.WEBSITE.COM/resource1", "", ""));
 }
 
 }

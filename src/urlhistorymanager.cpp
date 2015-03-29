@@ -23,6 +23,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "urlhistorymanager.h"
+
+#include <algorithm>
+
 namespace geecxx
 {
 
@@ -33,6 +36,52 @@ UrlHistoryManager::UrlHistoryManager(size_t maxSize) : _maxSize(maxSize)
 size_t UrlHistoryManager::getMaxSize()
 {
     return _maxSize;
+}
+
+size_t UrlHistoryManager::getSize()
+{
+    return _entries.size();
+}
+
+bool UrlHistoryManager::insert(const std::string& url, std::string title, std::string messageAuthor)
+{
+    std::string formattedUrl = formatUrl(url);
+    if (_entries.end() != _entries.find(formattedUrl)) {
+        // Entry already exists for given URL, that's an error
+        return false;
+    }
+
+    if (getSize() == getMaxSize()) {
+        // Retrieve oldest entry and remove it from our history
+        _entries.erase(_history.front());
+        _history.pop();
+    }
+
+    UrlHistoryEntry newEntry{getNextId(), std::move(title), std::move(messageAuthor)};
+    _history.push(formattedUrl);
+    _entries.emplace(std::move(formattedUrl), std::move(newEntry));
+
+    return true;
+}
+
+bool UrlHistoryManager::find(const std::string& url, UrlHistoryEntry& entry)
+{
+    std::string formattedUrl = formatUrl(url);
+    auto iterator = _entries.find(formattedUrl);
+    if (_entries.end() == iterator) {
+        return false;
+    }
+
+    entry = iterator->second;
+    return true;
+}
+
+void UrlHistoryManager::clear()
+{
+    _entries.clear();
+    while (!_history.empty()) {
+        _history.pop();
+    }
 }
 
 size_t UrlHistoryManager::getNextId()
@@ -48,48 +97,47 @@ size_t UrlHistoryManager::getNextId()
     return id;
 }
 
-size_t UrlHistoryManager::getSize()
+std::string UrlHistoryManager::formatUrl(const std::string& url)
 {
-    return _entries.size();
-}
-
-bool UrlHistoryManager::insert(std::string url, std::string title, std::string messageAuthor)
-{
-    if (_entries.end() != _entries.find(url)) {
-        // Entry already exists for given URL, that's an error
-        return false;
+    size_t startIndex = url.find("//");
+    if (std::string::npos != startIndex) {
+        // Protocol has been found, skip it
+        startIndex += 2;
+    } else {
+        // Protocol not found, stay at the begining
+        startIndex = 0;
     }
 
-    if (getSize() == getMaxSize()) {
-        // Retrieve oldest entry and remove it from our history
-        _entries.erase(_history.front());
-        _history.pop();
+    // Try to find any fragment at the end of the URL.
+    // As we want to modify the string after that point,
+    // we need a copy of the current substring.
+    size_t endIndex = url.rfind("#");
+    std::string formattedUrl;
+    if (std::string::npos == endIndex) {
+        formattedUrl = url.substr(startIndex);
+    } else {
+        formattedUrl = url.substr(startIndex, endIndex - startIndex);
     }
 
-    UrlHistoryEntry newEntry{getNextId(), std::move(title), std::move(messageAuthor)};
-    _history.push(url);
-    _entries.emplace(std::move(url), std::move(newEntry));
-
-    return true;
-}
-
-bool UrlHistoryManager::find(const std::string& url, UrlHistoryEntry& entry)
-{
-    auto iterator = _entries.find(url);
-    if (_entries.end() == iterator) {
-        return false;
+    // Set domain name to lower case
+    endIndex = formattedUrl.find("/");
+    if (std::string::npos != endIndex) {
+        std::transform(formattedUrl.begin(), formattedUrl.begin() + endIndex,
+                       formattedUrl.begin(), tolower);
+    } else {
+        std::transform(formattedUrl.begin(), formattedUrl.end(),
+                       formattedUrl.begin(), tolower);
     }
 
-    entry = iterator->second;
-    return true;
-}
-
-void UrlHistoryManager::clear()
-{
-    _entries.clear();
-    while (!_history.empty()) {
-        _history.pop();
+    startIndex = formattedUrl.find("www.");
+    if (std::string::npos != startIndex) {
+        // "www." has been found, skip it
+        startIndex += 4;
+    } else {
+        startIndex = 0;
     }
+
+    return formattedUrl.substr(startIndex);
 }
 
 }
