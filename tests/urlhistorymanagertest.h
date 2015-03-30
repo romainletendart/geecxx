@@ -25,8 +25,11 @@
 #ifndef GEECXX_TESTS_CONNECTION_TEST_H
 #define GEECXX_TESTS_CONNECTION_TEST_H
 
+#include "testconfig.h"
+
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/TestFixture.h>
+#include <string>
 
 namespace geecxx
 {
@@ -37,6 +40,7 @@ class UrlHistoryManagerTest : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST(testAll);
     CPPUNIT_TEST(testSimilarUrls);
     CPPUNIT_TEST(testInitFromSaveToFile);
+    CPPUNIT_TEST(testEmptyHistoryFile);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -50,6 +54,9 @@ public:
     void testAll();
     void testSimilarUrls();
     void testInitFromSaveToFile();
+    void testEmptyHistoryFile();
+private:
+    const std::string _historyFilePath = std::string(GEECXX_TEST_DATA_DIR) + "url-history-test.txt";
 };
 
 }

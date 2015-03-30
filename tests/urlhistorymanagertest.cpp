@@ -24,8 +24,10 @@
  */
 #include "urlhistorymanagertest.h"
 
-#include "testconfig.h"
+#include <cstdio>
+#include <fstream>
 
+#include "logger.h"
 #include "urlhistorymanager.h"
 
 namespace geecxx
@@ -39,6 +41,14 @@ void UrlHistoryManagerTest::setUp()
 
 void UrlHistoryManagerTest::tearDown()
 {
+    std::ifstream historyFile(_historyFilePath);
+    if (historyFile.good()) {
+        // File exists, we need to delete it
+        historyFile.close();
+        if (0 != remove(_historyFilePath.c_str())) {
+            LOG_ERROR("Unable to remove file: " + _historyFilePath);
+        }
+    } // else, nothing to clean up
 }
 
 // Actual tests
@@ -117,7 +127,8 @@ void UrlHistoryManagerTest::testSimilarUrls()
 
 void UrlHistoryManagerTest::testInitFromSaveToFile()
 {
-    UrlHistoryManager history(8, std::string(GEECXX_TEST_DATA_DIR) + "url-history-test.txt");
+    // History size (== 8) is arbitrary here
+    UrlHistoryManager history(8, _historyFilePath);
 
     const std::string urlA = "http://www.websiteA.com/";
     const std::string urlB = "http://www.websiteB.com/";
@@ -148,6 +159,18 @@ void UrlHistoryManagerTest::testInitFromSaveToFile()
     CPPUNIT_ASSERT_EQUAL(expectedEntryB._id, readEntryB._id);
     CPPUNIT_ASSERT_EQUAL(expectedEntryB._title, readEntryB._title);
     CPPUNIT_ASSERT_EQUAL(expectedEntryB._messageAuthor, readEntryB._messageAuthor);
+}
+
+void UrlHistoryManagerTest::testEmptyHistoryFile()
+{
+    // History size (== 8) is arbitrary here
+    UrlHistoryManager history(8, _historyFilePath);
+
+    // Saving empty history to file (should create an empty file)
+    CPPUNIT_ASSERT_EQUAL(true, history.saveToFile());
+
+    // We should be able to read from an empty file
+    CPPUNIT_ASSERT_EQUAL(true, history.initFromFile());
 }
 
 }

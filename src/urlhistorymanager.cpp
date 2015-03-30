@@ -89,8 +89,8 @@ bool UrlHistoryManager::initFromFile()
 {
     std::ifstream historyFile(_historyFilePath);
 
-    if (!historyFile) {
-        // File doesn't exist so there is nothing to read here
+    if (!historyFile || !historyFile.peek()) {
+        // File doesn't exist or is empty
         return true;
     }
 
