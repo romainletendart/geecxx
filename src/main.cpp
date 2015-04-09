@@ -54,7 +54,12 @@ int main(int argc, char *argv[])
         }
     }
 
+    int exitStatus = 0;
     LOG_INFO("Starting Geecxx...");
-    bot.run();
-    return 0;
+    if (!bot.run()) {
+        exitStatus = -1;
+    }
+    LOG_INFO("Geecxx stopped.");
+
+    return exitStatus;
 }

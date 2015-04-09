@@ -50,8 +50,8 @@ public:
      * @param maxSize maximum number of elements in the history
      */
     UrlHistoryManager(size_t maxSize = 512,
-                     std::string historyFilePath = std::string(
-                        GEECXX_LOCAL_DATA_DIR) + "url-history.txt");
+                      std::string historyFilePath = GEECXX_LOCAL_DATA_DIR
+                                                    "url-history.txt");
 
     /**
      * Get maximum size of the history

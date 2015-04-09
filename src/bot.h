@@ -18,7 +18,7 @@ public:
     Bot();
     ~Bot();
     bool init(const ConfigurationProvider& configuration);
-    void run();
+    bool run();
     void nick(const std::string& nickname);
     void join(const std::string& channel, const std::string &key = "");
     void say(const std::string& message);
@@ -31,6 +31,8 @@ private:
     std::istringstream& skipToContent(std::istringstream& iss);
     void readHandler(const std::string& message);
     void writeHandler(void);
+
+    const size_t _maxUnsavedUrlCount = 10;
 
     std::unique_ptr<Connection> _connection;
     UrlHistoryManager _urlHistory;

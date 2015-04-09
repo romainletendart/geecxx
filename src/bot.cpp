@@ -19,7 +19,6 @@ Bot::Bot()
 
 Bot::~Bot()
 {
-    quit();
 }
 
 bool Bot::init(const ConfigurationProvider& configuration)
@@ -44,9 +43,9 @@ bool Bot::init(const ConfigurationProvider& configuration)
     return true;
 }
 
-void Bot::run()
+bool Bot::run()
 {
-    _connection->run();
+    return _connection->run();
 }
 
 void Bot::nick(const std::string& nickname)
@@ -146,6 +145,9 @@ void Bot::readHandler(const std::string& message)
 
                 // Add the URL to our history
                 _urlHistory.insert(urlCandidate, title, sender);
+                if (0 == (_urlHistory.getSize() % _maxUnsavedUrlCount)) {
+                    _urlHistory.saveToFile();
+                }
                 _urlHistory.find(urlCandidate, historyEntry);
             }
 
@@ -205,7 +207,6 @@ void Bot::writeHandler()
             running = false;
         }
     }
-    LOG_INFO("Geecxx stopped.");
 }
 
 bool Bot::parseURL(const std::string& message, std::string& result)
