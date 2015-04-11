@@ -64,6 +64,8 @@ bool Bot::run()
     });
 
     if (!_connection->listen()) {
+        LOG_ERROR("Couldn't run bot, listening on the connection failed");
+        // TODO Find a proper way to terminate the thread in that case
         return false;
     }
 
@@ -74,9 +76,14 @@ bool Bot::run()
 
 void Bot::nick(const std::string& nickname)
 {
-    LOG_INFO("nick: " + nickname);
-    _connection->writeMessage(std::string("NICK ") + nickname);
-    _connection->writeMessage(std::string("USER ") + nickname + " * * :" + nickname);
+    const std::string nickCmd("NICK " + nickname);
+    const std::string userCmd("USER " + nickname + " * * :" + nickname);
+
+    LOG_INFO(nickCmd);
+    LOG_INFO(userCmd);
+
+    _connection->writeMessage(nickCmd);
+    _connection->writeMessage(userCmd);
     _nickname = nickname;
 }
 
