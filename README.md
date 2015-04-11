@@ -34,3 +34,12 @@ Generic options:
   -h [ --help ]          produce help message
 
 ```
+
+Example
+=======
+
+```
+$ ./geecxx --key mychannelkey --nick GeecxxBot localhost 6667 "#mychannel"
+```
+Note: You might need to use "" around the channel name to avoid wrong
+interpretation of the "#" character by the shell you are using.
