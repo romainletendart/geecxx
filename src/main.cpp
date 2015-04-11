@@ -23,6 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <chrono>
+#include <memory>
 #include <string>
 #include <thread>
 #include <iostream>
@@ -35,23 +36,20 @@ int main(int argc, char *argv[])
 {
     geecxx::Bot bot;
 
-    // Create sub-scope to clean up configuration after we are done with it
-    {
-        geecxx::ConfigurationProvider configuration;
+    std::unique_ptr<geecxx::ConfigurationProvider> configurationProvider(new geecxx::ConfigurationProvider{});
 
-        if (!configuration.parseCommandLineArgs(argc, argv)) {
-            std::cerr << configuration.help();
-            return -1;
-        }
+    if (!configurationProvider->parseCommandLineArgs(argc, argv)) {
+        std::cerr << configurationProvider->help();
+        return -1;
+    }
 
-        if (configuration.needsHelp()) {
-            std::cout << configuration.help();
-            return 0;
-        }
+    if (configurationProvider->needsHelp()) {
+        std::cout << configurationProvider->help();
+        return 0;
+    }
 
-        if (!bot.init(configuration)) {
-            return -1;
-        }
+    if (!bot.init(std::move(configurationProvider))) {
+        return -1;
     }
 
     int exitStatus = 0;

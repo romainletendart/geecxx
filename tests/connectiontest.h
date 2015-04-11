@@ -36,7 +36,6 @@ class ConnectionTest : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST_SUITE(ConnectionTest);
     CPPUNIT_TEST(testObjectConstructionDestruction);
     CPPUNIT_TEST(testWriteBeforeOpen);
-    CPPUNIT_TEST(testExternalWriteHandler);
     CPPUNIT_TEST(testWrongPort);
     CPPUNIT_TEST_SUITE_END();
 

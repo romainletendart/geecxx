@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <thread>
 
 #include "logger.h"
 #include "webinforetriever.h"
@@ -21,31 +22,54 @@ Bot::~Bot()
 {
 }
 
-bool Bot::init(const ConfigurationProvider& configuration)
+bool Bot::init(std::unique_ptr<ConfigurationProvider> configurationProvider)
 {
+    if (!configurationProvider) {
+        LOG_ERROR("Couldn't initialize bot, configuration provider parameter is null");
+        return false;
+    }
+    _configurationProvider.swap(configurationProvider);
     if (!_urlHistory.initFromFile()) {
+        LOG_ERROR("Couldn't initialize bot, history file is invalid");
         return false;
     }
-    _connection.reset(new Connection(configuration.getServer(), std::to_string(configuration.getPortNumber())));
+    _connection.reset(new Connection(_configurationProvider->getServer(), std::to_string(_configurationProvider->getPortNumber())));
     if (!_connection) {
+        LOG_ERROR("Couldn't initialize bot, connection object is null");
         return false;
     }
-    _connection->setExternalReadHandler([this](const std::string& m){
-        this->readHandler(m);
+    _connection->setExternalReadHandler([this](const std::string& message){
+        this->readHandler(message);
     });
-    _connection->setExternalWriteHandler([this]() { writeHandler(); });
-    if(!_connection->open()) {
-        return false;
-    }
-    nick(configuration.getNickname());
-    join(configuration.getChannelName(), configuration.getChannelKey());
 
     return true;
 }
 
 bool Bot::run()
 {
-    return _connection->run();
+    if (!_connection) {
+        LOG_ERROR("Couldn't run bot, connection object is null");
+        return false;
+    }
+    if (!_connection->open()) {
+        return false;
+    }
+
+    // TODO Manage failures of NICK and JOIN commands
+    nick(_configurationProvider->getNickname());
+    join(_configurationProvider->getChannelName(), _configurationProvider->getChannelKey());
+
+    std::thread cliThread([this]() {
+        openCli();
+    });
+
+    if (!_connection->listen()) {
+        return false;
+    }
+
+    cliThread.join();
+
+    return true;
 }
 
 void Bot::nick(const std::string& nickname)
@@ -176,11 +200,11 @@ void Bot::readHandler(const std::string& message)
 
 }
 
-void Bot::writeHandler()
+void Bot::openCli(void)
 {
     std::string line, comm;
     bool running = true;
-    while (_connection->isAlive() && running) {
+    while (running) {
         std::getline(std::cin, line);
         std::istringstream iss(line);
         iss >> comm;

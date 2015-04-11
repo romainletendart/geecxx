@@ -17,7 +17,7 @@ class Bot
 public:
     Bot();
     ~Bot();
-    bool init(const ConfigurationProvider& configuration);
+    bool init(std::unique_ptr<ConfigurationProvider> configurationProvider);
     bool run();
     void nick(const std::string& nickname);
     void join(const std::string& channel, const std::string &key = "");
@@ -30,11 +30,12 @@ private:
     bool parseURL(const std::string& message, std::string& result);
     std::istringstream& skipToContent(std::istringstream& iss);
     void readHandler(const std::string& message);
-    void writeHandler(void);
+    void openCli(void);
 
     const size_t _maxUnsavedUrlCount = 10;
 
     std::unique_ptr<Connection> _connection;
+    std::unique_ptr<ConfigurationProvider> _configurationProvider;
     UrlHistoryManager _urlHistory;
     std::string _currentChannel;
     std::string _nickname;

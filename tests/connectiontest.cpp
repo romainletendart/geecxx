@@ -57,23 +57,6 @@ void ConnectionTest::testWriteBeforeOpen()
     CPPUNIT_ASSERT_EQUAL(false, connection.writeMessage("BOOM"));
 }
 
-void ConnectionTest::testExternalWriteHandler()
-{
-    Connection connection("localhost", "6667");
-
-    // run() needs the write handler to be set
-    CPPUNIT_ASSERT_EQUAL(false, connection.run());
-
-    bool watchdog = false;
-    connection.setExternalWriteHandler([&watchdog]() {
-        watchdog = true;
-    });
-
-    // Write handler is now set and usable
-    CPPUNIT_ASSERT_EQUAL(true, connection.run());
-    CPPUNIT_ASSERT_EQUAL(true, watchdog);
-}
-
 void ConnectionTest::testWrongPort()
 {
     Connection connectionA("localhost", "0");

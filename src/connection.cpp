@@ -22,8 +22,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <thread>
-
 #include "connection.h"
 
 #include <boost/bind.hpp>
@@ -49,6 +47,7 @@ bool Connection::open()
         return false;
     }
 
+    // Initialize read handler
     asyncRead();
 
     return true;
@@ -56,8 +55,24 @@ bool Connection::open()
 
 void Connection::close()
 {
-    _socket.close();
     _ioService.stop();
+    if (_socket.is_open()) {
+        _socket.shutdown(boost::asio::socket_base::shutdown_both);
+        _socket.close();
+    }
+}
+
+bool Connection::listen()
+{
+    if (!isAlive()) {
+        LOG_ERROR("Cannot listen on closed connection");
+        return false;
+    }
+
+    // This blocking call waits for completion of all asynchronous calls
+    _ioService.run();
+
+    return true;
 }
 
 bool Connection::isAlive() const
@@ -68,11 +83,6 @@ bool Connection::isAlive() const
 void Connection::setExternalReadHandler(const ReadHandler& externalReadHandler)
 {
     _externalReadHandler = externalReadHandler;
-}
-
-void Connection::setExternalWriteHandler(const WriteHandler& externalWriteHandler)
-{
-    _externalWriteHandler = externalWriteHandler;
 }
 
 bool Connection::writeMessage(const std::string& message)
@@ -134,22 +144,6 @@ void Connection::asyncRead()
         "\r\n", boost::bind(&Connection::readHandler, this,
                             boost::asio::placeholders::error,
                             boost::asio::placeholders::bytes_transferred));
-}
-
-bool Connection::run()
-{
-    if (!_externalWriteHandler) {
-        LOG_ERROR("External write handler not initialized");
-        return false;
-    }
-    std::thread writeHandlerThread(_externalWriteHandler);
-
-    // This blocking call waits for completion of all asynchronous calls
-    _ioService.run();
-
-    writeHandlerThread.join();
-
-    return true;
 }
 
 }
