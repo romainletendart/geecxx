@@ -132,6 +132,8 @@ bool WebInfoRetriever::sendHttpRequest(const std::string &url, RequestType type,
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ::curlWriteCallBack);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 15L);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15L);
     if (RequestType::HEADER == type) {
         curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
         curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
