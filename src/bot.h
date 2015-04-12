@@ -26,6 +26,7 @@
 #define GEECXX_BOT_H
 
 #include <memory>
+#include <mutex>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -62,6 +63,7 @@ private:
     const size_t _maxUrlDisplayLength = 30;
 
     std::unique_ptr<Connection> _connection;
+    std::mutex _connectionMutex;
     std::unique_ptr<ConfigurationProvider> _configurationProvider;
     UrlHistoryManager _urlHistory;
     std::string _currentChannel;

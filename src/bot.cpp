@@ -108,6 +108,7 @@ void Bot::nick(const std::string& nickname)
     LOG_INFO(nickCmd);
     LOG_INFO(userCmd);
 
+    std::lock_guard<std::mutex> lock(_connectionMutex);
     _connection->writeMessage(nickCmd);
     _connection->writeMessage(userCmd);
     _nickname = nickname;
@@ -116,19 +117,23 @@ void Bot::nick(const std::string& nickname)
 void Bot::join(const std::string& channel, const std::string& key)
 {
     LOG_INFO(std::string("JOIN ") + channel + " " + key);
+
+    std::lock_guard<std::mutex> lock(_connectionMutex);
     _connection->writeMessage(std::string("JOIN ") + channel + " " + key);
     _currentChannel = channel;
 }
 
 void Bot::say(const std::string& message)
 {
-   msg(_currentChannel, message);
+    msg(_currentChannel, message);
 }
 
 void Bot::msg(const std::string& receiver, const std::string& message)
 {
     std::istringstream stream(message);
     std::string messageChunk;
+
+    std::lock_guard<std::mutex> lock(_connectionMutex);
     while (std::getline(stream, messageChunk)) {
         if (messageChunk != "") {
             _connection->writeMessage(std::string("PRIVMSG ") + receiver + " :" + messageChunk);
@@ -138,11 +143,13 @@ void Bot::msg(const std::string& receiver, const std::string& message)
 
 void Bot::pong(const std::string& serverName)
 {
+    std::lock_guard<std::mutex> lock(_connectionMutex);
     _connection->writeMessage(std::string("PONG ") + serverName);
 }
 
 void Bot::quit()
 {
+    std::lock_guard<std::mutex> lock(_connectionMutex);
     _urlHistory.saveToFile();
     if (_connection && _connection->isAlive()) {
         _connection->writeMessage(std::string("QUIT : Shutting down."));
