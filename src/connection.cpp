@@ -82,7 +82,11 @@ bool Connection::isAlive() const
 
 void Connection::setExternalReadHandler(const ReadHandler& externalReadHandler)
 {
-    _externalReadHandler = externalReadHandler;
+    if (!externalReadHandler) {
+        LOG_ERROR("Cannot set connection read handler to an empty one");
+    } else {
+        _externalReadHandler = externalReadHandler;
+    }
 }
 
 bool Connection::writeMessage(const std::string& message)

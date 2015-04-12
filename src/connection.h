@@ -64,8 +64,9 @@ private:
 
     /**
      * External handler to be called when data are available for reading.
+     * Default handler does nothing.
      */
-    ReadHandler _externalReadHandler;
+    ReadHandler _externalReadHandler = [](const std::string&) {};
 
     boost::asio::streambuf _responseBuffer;
 };
