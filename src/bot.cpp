@@ -32,6 +32,8 @@
 #include <sstream>
 #include <thread>
 
+#include "stringutils.h"
+
 #include "logger.h"
 #include "webinforetriever.h"
 
@@ -280,13 +282,14 @@ void Bot::processURL(const std::string& url, const std::string& sender, const st
     }
 
     std::stringstream titleOutput;
+    std::string urlOutput = stringutils::shorten(stringutils::formatUrl(url), _maxUrlDisplayLength);
     if (historyEntry._title != "") {
-        titleOutput << historyEntry._title << " (URL#" << historyEntry._id << ")";
+        titleOutput << historyEntry._title << " (URL: " << urlOutput << ")";
     }
 
     if (alreadyPosted) {
         titleOutput << std::endl << sender << ": Already posted by " << historyEntry._messageAuthor;
-        titleOutput << " (URL#" << historyEntry._id << ")";
+        titleOutput << " (URL: " << urlOutput << ")";
     }
 
     if (recipient == _currentChannel) {

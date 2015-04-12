@@ -115,18 +115,6 @@ private:
     size_t getNextId();
 
     /**
-     * Return formatted and minimized URL
-     *
-     * The idea behind this function is to minimize URLs by removing
-     * protocol information (http(s)://), "www" and fragments (#fragment-id)
-     * from them. It also sets the URL to lowercase (only for domain name
-     * part).
-     * @param[in] url url that will be formatted
-     * @return formatted and minimized URL
-     */
-    std::string formatUrl(const std::string& url);
-
-    /**
      * Maximum size of the history
      */
     const size_t _maxSize;

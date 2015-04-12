@@ -59,6 +59,7 @@ private:
     void openCli(void);
 
     const size_t _maxUnsavedUrlCount = 10;
+    const size_t _maxUrlDisplayLength = 30;
 
     std::unique_ptr<Connection> _connection;
     std::unique_ptr<ConfigurationProvider> _configurationProvider;

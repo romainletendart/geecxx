@@ -27,6 +27,8 @@
 #include <algorithm>
 #include <fstream>
 
+#include "stringutils.h"
+
 namespace geecxx
 {
 
@@ -47,7 +49,7 @@ size_t UrlHistoryManager::getSize()
 
 bool UrlHistoryManager::insert(const std::string& url, std::string title, std::string messageAuthor)
 {
-    std::string formattedUrl = formatUrl(url);
+    std::string formattedUrl = stringutils::formatUrl(url);
     if (_entries.end() != _entries.find(formattedUrl)) {
         // Entry already exists for given URL, that's an error
         return false;
@@ -68,7 +70,7 @@ bool UrlHistoryManager::insert(const std::string& url, std::string title, std::s
 
 bool UrlHistoryManager::find(const std::string& url, UrlHistoryEntry& entry)
 {
-    std::string formattedUrl = formatUrl(url);
+    std::string formattedUrl = stringutils::formatUrl(url);
     auto iterator = _entries.find(formattedUrl);
     if (_entries.end() == iterator) {
         return false;
@@ -158,49 +160,6 @@ size_t UrlHistoryManager::getNextId()
     }
 
     return id;
-}
-
-std::string UrlHistoryManager::formatUrl(const std::string& url)
-{
-    size_t startIndex = url.find("//");
-    if (std::string::npos != startIndex) {
-        // Protocol has been found, skip it
-        startIndex += 2;
-    } else {
-        // Protocol not found, stay at the begining
-        startIndex = 0;
-    }
-
-    // Try to find any fragment at the end of the URL.
-    // As we want to modify the string after that point,
-    // we need a copy of the current substring.
-    size_t endIndex = url.rfind("#");
-    std::string formattedUrl;
-    if (std::string::npos == endIndex) {
-        formattedUrl = url.substr(startIndex);
-    } else {
-        formattedUrl = url.substr(startIndex, endIndex - startIndex);
-    }
-
-    // Set domain name to lower case
-    endIndex = formattedUrl.find("/");
-    if (std::string::npos != endIndex) {
-        std::transform(formattedUrl.begin(), formattedUrl.begin() + endIndex,
-                       formattedUrl.begin(), tolower);
-    } else {
-        std::transform(formattedUrl.begin(), formattedUrl.end(),
-                       formattedUrl.begin(), tolower);
-    }
-
-    startIndex = formattedUrl.find("www.");
-    if (std::string::npos != startIndex) {
-        // "www." has been found, skip it
-        startIndex += 4;
-    } else {
-        startIndex = 0;
-    }
-
-    return formattedUrl.substr(startIndex);
 }
 
 }

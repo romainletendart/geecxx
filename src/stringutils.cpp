@@ -77,6 +77,72 @@ void formatInline(std::string& s)
     s = outputStream.str();
 }
 
+std::string formatUrl(const std::string& url)
+{
+    size_t startIndex = url.find("//");
+    if (std::string::npos != startIndex) {
+        // Protocol has been found, skip it
+        startIndex += 2;
+    } else {
+        // Protocol not found, stay at the begining
+        startIndex = 0;
+    }
+
+    // Try to find any fragment at the end of the URL.
+    // As we want to modify the string after that point,
+    // we need a copy of the current substring.
+    size_t endIndex = url.rfind("#");
+    std::string formattedUrl;
+    if (std::string::npos == endIndex) {
+        formattedUrl = url.substr(startIndex);
+    } else {
+        formattedUrl = url.substr(startIndex, endIndex - startIndex);
+    }
+
+    // Set domain name to lower case
+    endIndex = formattedUrl.find("/");
+    if (std::string::npos != endIndex) {
+        std::transform(formattedUrl.begin(), formattedUrl.begin() + endIndex,
+                       formattedUrl.begin(), tolower);
+    } else {
+        std::transform(formattedUrl.begin(), formattedUrl.end(),
+                       formattedUrl.begin(), tolower);
+    }
+
+    startIndex = formattedUrl.find("www.");
+    if (std::string::npos != startIndex) {
+        // "www." has been found, skip it
+        startIndex += 4;
+    } else {
+        startIndex = 0;
+    }
+
+    return formattedUrl.substr(startIndex);
+}
+
+std::string shorten(const std::string &s, size_t maxSize)
+{
+    if (maxSize >= s.size()) {
+        // String already short enough, nothing to be done
+        return s;
+    }
+
+    const std::string middle{"[..]"};
+    if (maxSize < (middle.size() + 2)) {
+        return s.substr(0, maxSize);
+    }
+
+    std::stringstream outputStream;
+    maxSize -= middle.size();
+    size_t firstSectionSize = (maxSize + 1) / 2;
+    size_t secondSectionSize = (maxSize - firstSectionSize);
+    outputStream << s.substr(0, firstSectionSize);
+    outputStream << middle;
+    outputStream << s.substr(s.size() - secondSectionSize, secondSectionSize);
+
+    return outputStream.str();
+}
+
 void trimLeft(std::string& s)
 {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
