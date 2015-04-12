@@ -48,6 +48,7 @@ ConfigurationProvider::ConfigurationProvider() :
     optional.add_options()
         ("key", po::value<std::string>(&_channelKey)->default_value(std::string()), "the protection key for the channel")
         ("nick", po::value<std::string>(&_nickname)->default_value(std::string("geecxx")), "the bot's nickname")
+        ("use-ssl", po::value<bool>(&_useSSL)->default_value(false), "use SSL to communicate with the IRC server")
     ;
     po::options_description generic("Generic options");
     generic.add_options()
@@ -117,6 +118,11 @@ std::string ConfigurationProvider::getChannelName() const
 std::string ConfigurationProvider::getChannelKey() const
 {
     return _channelKey;
+}
+
+bool ConfigurationProvider::useSSL() const
+{
+    return _useSSL;
 }
 
 bool ConfigurationProvider::needsHelp() const

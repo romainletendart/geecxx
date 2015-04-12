@@ -29,6 +29,7 @@ geecxx [options] <server> <port> <channel>
 Optional arguments:
   --key arg              the protection key for the channel
   --nick arg (=geecxx)   the bot's nickname
+  --use-ssl arg (=0)     use SSL to communicate with the IRC server
 
 Generic options:
   -h [ --help ]          produce help message

@@ -59,7 +59,12 @@ bool Bot::init(std::unique_ptr<ConfigurationProvider> configurationProvider)
         LOG_ERROR("Couldn't initialize bot, history file is invalid");
         return false;
     }
-    _connection.reset(new Connection(_configurationProvider->getServer(), std::to_string(_configurationProvider->getPortNumber())));
+    if (_configurationProvider->useSSL()) {
+        LOG_ERROR("SSL not supported yet");
+        return false;
+    } else {
+        _connection.reset(new Connection(_configurationProvider->getServer(), std::to_string(_configurationProvider->getPortNumber())));
+    }
     if (!_connection) {
         LOG_ERROR("Couldn't initialize bot, connection object is null");
         return false;

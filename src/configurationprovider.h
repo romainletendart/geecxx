@@ -71,6 +71,8 @@ public:
     std::string getChannelName() const;
 
     std::string getChannelKey() const;
+
+    bool useSSL() const;
     
     bool needsHelp() const;
 private:
@@ -81,6 +83,7 @@ private:
     std::string _nickname;
     std::string _channelName;
     std::string _channelKey; // Channel key is empty by default
+    bool _useSSL;
     bool _help;
 };
 
