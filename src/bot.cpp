@@ -180,46 +180,14 @@ void Bot::readHandler(const std::string& message)
         iss >> recipient;
         LOG_DEBUG("PRIVMSG FROM " + sender + " TO " + recipient);
 
-        if(recipient == _nickname) {
+        if (recipient == _nickname) {
             return;
         }
 
-        std::string urlCandidate;
-        if (parseURL(message, urlCandidate)) {
-            LOG_DEBUG("Found URL: " + urlCandidate);
-
-            UrlHistoryEntry historyEntry;
-            bool alreadyPosted = _urlHistory.find(urlCandidate, historyEntry);
-            if (!alreadyPosted) {
-                // First time the URL has been posted, we first need to
-                // retrieve the title
-                std::string title;
-                if (!WebInfoRetriever::getInstance().retrievePageTitle(urlCandidate, title)) {
-                    title = "";
-                } // else title already set
-
-                // Add the URL to our history
-                _urlHistory.insert(urlCandidate, title, sender);
-                if (0 == (_urlHistory.getSize() % _maxUnsavedUrlCount)) {
-                    _urlHistory.saveToFile();
-                }
-                _urlHistory.find(urlCandidate, historyEntry);
-            }
-
-            std::stringstream titleOutput;
-            if (historyEntry._title != "") {
-                titleOutput << historyEntry._title << " (URL#" << historyEntry._id << ")";
-            }
-
-            if (alreadyPosted) {
-                titleOutput << std::endl << sender << ": Already posted by " << historyEntry._messageAuthor;
-                titleOutput << " (URL#" << historyEntry._id << ")";
-            }
-
-            if (recipient == _currentChannel) {
-                say(titleOutput.str());
-            } else {
-                msg(sender, titleOutput.str());
+        std::vector<std::string> urlCandidates;
+        if (parseURL(message, urlCandidates)) {
+            for (std::string& url : urlCandidates) {
+                processURL(url, sender, recipient);
             }
         }
     } else if (command == "PING") {
@@ -264,7 +232,7 @@ void Bot::openCli(void)
     }
 }
 
-bool Bot::parseURL(const std::string& message, std::string& result)
+bool Bot::parseURL(const std::string& message, std::vector<std::string>& results)
 {
     boost::regex urlRegex;
     try {
@@ -277,11 +245,55 @@ bool Bot::parseURL(const std::string& message, std::string& result)
         return false;
     }
 
-    boost::smatch matchedElements;
-    bool containsURL = boost::regex_search(message, matchedElements, urlRegex);
-    result = matchedElements[0];
+    boost::sregex_iterator regexIterator(message.begin(), message.end(), urlRegex);
+    const boost::sregex_iterator endIterator = boost::sregex_iterator{};
+    bool containsURL = regexIterator != endIterator;
+    results.clear();
+    while (regexIterator != endIterator) {
+        results.push_back((*regexIterator)[0]);
+        ++regexIterator;
+    }
 
     return containsURL;
+}
+
+void Bot::processURL(const std::string& url, const std::string& sender, const std::string& recipient)
+{
+    LOG_DEBUG("Found URL: " + url);
+
+    UrlHistoryEntry historyEntry;
+    bool alreadyPosted = _urlHistory.find(url, historyEntry);
+    if (!alreadyPosted) {
+        // First time the URL has been posted, we first need to
+        // retrieve the title
+        std::string title;
+        if (!WebInfoRetriever::getInstance().retrievePageTitle(url, title)) {
+            title = "";
+        } // else title already set
+
+        // Add the URL to our history
+        _urlHistory.insert(url, title, sender);
+        if (0 == (_urlHistory.getSize() % _maxUnsavedUrlCount)) {
+            _urlHistory.saveToFile();
+        }
+        _urlHistory.find(url, historyEntry);
+    }
+
+    std::stringstream titleOutput;
+    if (historyEntry._title != "") {
+        titleOutput << historyEntry._title << " (URL#" << historyEntry._id << ")";
+    }
+
+    if (alreadyPosted) {
+        titleOutput << std::endl << sender << ": Already posted by " << historyEntry._messageAuthor;
+        titleOutput << " (URL#" << historyEntry._id << ")";
+    }
+
+    if (recipient == _currentChannel) {
+        say(titleOutput.str());
+    } else {
+        msg(sender, titleOutput.str());
+    }
 }
 
 }

@@ -28,6 +28,7 @@
 #include <memory>
 #include <string>
 #include <sstream>
+#include <vector>
 
 #include "configurationprovider.h"
 #include "connection.h"
@@ -51,7 +52,8 @@ public:
     void quit();
 
 private:
-    bool parseURL(const std::string& message, std::string& result);
+    bool parseURL(const std::string& message, std::vector<std::string>& results);
+    void processURL(const std::string& url, const std::string& sender, const std::string& recipient);
     std::istringstream& skipToContent(std::istringstream& iss);
     void readHandler(const std::string& message);
     void openCli(void);
