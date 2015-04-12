@@ -34,6 +34,7 @@ link_directories(${CPPUNIT_LIBRARY_DIRS})
 
 set(CONNECTION_TEST_SRCS
     connectiontest.cpp
+    ${Geecxx_SOURCE_DIR}/src/abstractconnection.cpp
     ${Geecxx_SOURCE_DIR}/src/connection.cpp
 )
 

@@ -25,50 +25,28 @@
 #ifndef GEECXX_CONNECTION_H
 #define GEECXX_CONNECTION_H
 
-#include <array>
+#include "abstractconnection.h"
+
 #include <boost/asio.hpp>
-#include <functional>
 #include <string>
 
 namespace geecxx {
 
-typedef std::function<void (const std::string&)> ReadHandler;
-
-class Connection
+class Connection : public AbstractConnection
 {
 public:
     Connection(const std::string& addr, const std::string& port);
     ~Connection();
 
-    bool open();
-    void close();
-
-    bool listen();
-
-    bool isAlive() const;
-
-    void setExternalReadHandler(const ReadHandler& externalReadHandler);
-    bool writeMessage(const std::string& message);
-
-    void readHandler(const boost::system::error_code& error, std::size_t);
+    void close() override;
+    bool isAlive() const override;
+    bool writeMessage(const std::string& message) override;
 
 private:
-    void asyncRead();
-    bool connect();
+    void asyncRead() override;
+    bool connect() override;
 
-    std::string _addr;
-    std::string _port;
-
-    boost::asio::io_service _ioService;
     boost::asio::ip::tcp::socket _socket;
-
-    /**
-     * External handler to be called when data are available for reading.
-     * Default handler does nothing.
-     */
-    ReadHandler _externalReadHandler = [](const std::string&) {};
-
-    boost::asio::streambuf _responseBuffer;
 };
 
 }

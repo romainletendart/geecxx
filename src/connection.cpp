@@ -32,25 +32,13 @@ namespace geecxx
 {
 
 Connection::Connection(const std::string& addr, const std::string& port)
-    : _addr(addr), _port(port), _socket(_ioService)
+    : AbstractConnection(addr, port), _socket(_ioService)
 {
 }
 
 Connection::~Connection()
 {
     close();
-}
-
-bool Connection::open()
-{
-    if (!connect()) {
-        return false;
-    }
-
-    // Initialize read handler
-    asyncRead();
-
-    return true;
 }
 
 void Connection::close()
@@ -62,31 +50,9 @@ void Connection::close()
     }
 }
 
-bool Connection::listen()
-{
-    if (!isAlive()) {
-        LOG_ERROR("Cannot listen on closed connection");
-        return false;
-    }
-
-    // This blocking call waits for completion of all asynchronous calls
-    _ioService.run();
-
-    return true;
-}
-
 bool Connection::isAlive() const
 {
     return _socket.is_open();
-}
-
-void Connection::setExternalReadHandler(const ReadHandler& externalReadHandler)
-{
-    if (!externalReadHandler) {
-        LOG_ERROR("Cannot set connection read handler to an empty one");
-    } else {
-        _externalReadHandler = externalReadHandler;
-    }
 }
 
 bool Connection::writeMessage(const std::string& message)
@@ -100,17 +66,12 @@ bool Connection::writeMessage(const std::string& message)
     return true;
 }
 
-void Connection::readHandler(const boost::system::error_code& error, std::size_t count)
+void Connection::asyncRead()
 {
-    if (error) {
-        close();
-    } else {
-        std::istream responseStream(&_responseBuffer);
-        std::string response;
-        std::getline(responseStream, response);
-        _externalReadHandler(response);
-        asyncRead();
-    }
+    boost::asio::async_read_until(_socket, _responseBuffer,
+        "\r\n", boost::bind(&AbstractConnection::readHandler, this,
+                            boost::asio::placeholders::error,
+                            boost::asio::placeholders::bytes_transferred));
 }
 
 bool Connection::connect()
@@ -140,14 +101,6 @@ bool Connection::connect()
 
     LOG_INFO("Connected.");
     return true;
-}
-
-void Connection::asyncRead()
-{
-    boost::asio::async_read_until(_socket, _responseBuffer,
-        "\r\n", boost::bind(&Connection::readHandler, this,
-                            boost::asio::placeholders::error,
-                            boost::asio::placeholders::bytes_transferred));
 }
 
 }

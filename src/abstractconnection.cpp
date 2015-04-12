@@ -22,53 +22,67 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef GEECXX_BOT_H
-#define GEECXX_BOT_H
-
-#include <memory>
-#include <mutex>
-#include <string>
-#include <sstream>
-#include <vector>
-
-#include "configurationprovider.h"
 #include "abstractconnection.h"
-#include "urlhistorymanager.h"
+
+#include "logger.h"
 
 namespace geecxx
 {
 
-class Bot
+AbstractConnection::AbstractConnection(const std::string& addr, const std::string& port)
+    : _addr(addr), _port(port)
 {
-public:
-    Bot();
-    ~Bot();
-    bool init(std::unique_ptr<ConfigurationProvider> configurationProvider);
-    bool run();
-    void nick(const std::string& nickname);
-    void join(const std::string& channel, const std::string &key = "");
-    void say(const std::string& message);
-    void msg(const std::string& receiver, const std::string& message);
-    void pong(const std::string& message);
-    void quit();
+}
 
-private:
-    bool parseURL(const std::string& message, std::vector<std::string>& results);
-    void processURL(const std::string& url, const std::string& sender, const std::string& recipient);
-    std::istringstream& skipToContent(std::istringstream& iss);
-    void readHandler(const std::string& message);
-    void openCli(void);
+AbstractConnection::~AbstractConnection()
+{
+}
 
-    const size_t _maxUnsavedUrlCount = 10;
-    const size_t _maxUrlDisplayLength = 30;
+bool AbstractConnection::open()
+{
+    if (!connect()) {
+        return false;
+    }
 
-    std::unique_ptr<AbstractConnection> _connection;
-    std::mutex _connectionMutex;
-    std::unique_ptr<ConfigurationProvider> _configurationProvider;
-    UrlHistoryManager _urlHistory;
-    std::string _currentChannel;
-    std::string _nickname;
-};
+    // Initialize read handler
+    asyncRead();
+
+    return true;
+}
+
+bool AbstractConnection::listen()
+{
+    if (!isAlive()) {
+        LOG_ERROR("Cannot listen on closed connection");
+        return false;
+    }
+
+    // This blocking call waits for completion of all asynchronous calls
+    _ioService.run();
+
+    return true;
+}
+
+void AbstractConnection::setExternalReadHandler(const ReadHandler& externalReadHandler)
+{
+    if (!externalReadHandler) {
+        LOG_ERROR("Cannot set connection read handler to an empty one");
+    } else {
+        _externalReadHandler = externalReadHandler;
+    }
+}
+
+void AbstractConnection::readHandler(const boost::system::error_code& error, std::size_t count)
+{
+    if (error) {
+        close();
+    } else {
+        std::istream responseStream(&_responseBuffer);
+        std::string response;
+        std::getline(responseStream, response);
+        _externalReadHandler(response);
+        asyncRead();
+    }
+}
 
 }
-#endif //GEECXX_BOT_H

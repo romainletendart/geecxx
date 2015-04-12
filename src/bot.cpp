@@ -34,6 +34,7 @@
 
 #include "stringutils.h"
 
+#include "connection.h"
 #include "logger.h"
 #include "webinforetriever.h"
 

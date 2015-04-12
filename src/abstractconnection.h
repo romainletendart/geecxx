@@ -22,53 +22,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef GEECXX_BOT_H
-#define GEECXX_BOT_H
+#ifndef GEECXX_ABSTRACT_CONNECTION_H
+#define GEECXX_ABSTRACT_CONNECTION_H
 
-#include <memory>
-#include <mutex>
+#include <boost/asio.hpp>
+#include <functional>
 #include <string>
-#include <sstream>
-#include <vector>
 
-#include "configurationprovider.h"
-#include "abstractconnection.h"
-#include "urlhistorymanager.h"
+namespace geecxx {
 
-namespace geecxx
-{
+typedef std::function<void (const std::string&)> ReadHandler;
 
-class Bot
+class AbstractConnection
 {
 public:
-    Bot();
-    ~Bot();
-    bool init(std::unique_ptr<ConfigurationProvider> configurationProvider);
-    bool run();
-    void nick(const std::string& nickname);
-    void join(const std::string& channel, const std::string &key = "");
-    void say(const std::string& message);
-    void msg(const std::string& receiver, const std::string& message);
-    void pong(const std::string& message);
-    void quit();
+    AbstractConnection(const std::string& addr, const std::string& port);
+    virtual ~AbstractConnection();
 
-private:
-    bool parseURL(const std::string& message, std::vector<std::string>& results);
-    void processURL(const std::string& url, const std::string& sender, const std::string& recipient);
-    std::istringstream& skipToContent(std::istringstream& iss);
-    void readHandler(const std::string& message);
-    void openCli(void);
+    bool listen();
+    bool open();
+    void readHandler(const boost::system::error_code& error, std::size_t);
+    void setExternalReadHandler(const ReadHandler& externalReadHandler);
 
-    const size_t _maxUnsavedUrlCount = 10;
-    const size_t _maxUrlDisplayLength = 30;
+    virtual void close() = 0;
+    virtual bool isAlive() const = 0;
+    virtual bool writeMessage(const std::string& message) = 0;
 
-    std::unique_ptr<AbstractConnection> _connection;
-    std::mutex _connectionMutex;
-    std::unique_ptr<ConfigurationProvider> _configurationProvider;
-    UrlHistoryManager _urlHistory;
-    std::string _currentChannel;
-    std::string _nickname;
+protected:
+    virtual void asyncRead() = 0;
+    virtual bool connect() = 0;
+
+    std::string _addr;
+    std::string _port;
+
+    boost::asio::io_service _ioService;
+
+    /**
+     * External handler to be called when data are available for reading.
+     * Default handler does nothing.
+     */
+    ReadHandler _externalReadHandler = [](const std::string&) {};
+
+    boost::asio::streambuf _responseBuffer;
 };
 
 }
-#endif //GEECXX_BOT_H
+
+#endif // GEECXX_ABSTRACT_CONNECTION_H
