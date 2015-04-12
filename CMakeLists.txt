@@ -51,6 +51,7 @@ if(NOT WITH_LOG_LEVEL)
 endif()
 
 set(GEECXX_BIN_DIR        "${CMAKE_INSTALL_FULL_BINDIR}/")
+set(GEECXX_CONF_DIR       "${CMAKE_INSTALL_FULL_SYSCONFDIR}/${TARGET}/")
 set(GEECXX_LOCAL_DATA_DIR "${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/${TARGET}/")
 
 configure_file(${Geecxx_SOURCE_DIR}/src/globalconfig.h.in ${Geecxx_BINARY_DIR}/src/globalconfig.h)
@@ -61,3 +62,5 @@ add_subdirectory(src)
 if(WITH_TESTS)
     add_subdirectory(tests)
 endif()
+
+install(FILES ${Geecxx_SOURCE_DIR}/external/ca-bundle/ca-bundle.crt DESTINATION ${GEECXX_CONF_DIR})

@@ -29,6 +29,7 @@ namespace geecxx
 {
 
 #define GEECXX_BIN_DIR "@GEECXX_BIN_DIR@"
+#define GEECXX_CONF_DIR "@GEECXX_CONF_DIR@"
 #define GEECXX_LOCAL_DATA_DIR "@GEECXX_LOCAL_DATA_DIR@"
 
 }

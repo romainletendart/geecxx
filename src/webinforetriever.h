@@ -28,6 +28,8 @@
 #include <sstream>
 #include <string>
 
+#include "globalconfig.h"
+
 #include "htmlentitieshelper.h"
 
 namespace geecxx
@@ -89,9 +91,11 @@ public:
 
 private:
     /**
-     * Default constructor
+     * Constructor
+     *
+     * @param[in] caFilePath Path to the Certification Authority (CA) file
      */
-    WebInfoRetriever();
+    WebInfoRetriever(std::string caFilePath = GEECXX_CONF_DIR "ca-bundle.crt");
 
     enum class RequestType
     {
@@ -136,6 +140,12 @@ private:
      * @return HTTP status code description
      */
     std::string strHttpError(const long& errorCode);
+
+    /**
+     * Path to the Certification Authority (CA) file that should be used
+     * to validate peer certificates
+     */
+    const std::string _caFilePath;
 
     HTMLEntitiesHelper _htmlEntitiesHelper;
     bool _isInitiliazed = false;

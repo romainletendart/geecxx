@@ -93,7 +93,8 @@ bool WebInfoRetriever::retrievePageTitle(const std::string& url, std::string &pa
     return true;
 }
 
-WebInfoRetriever::WebInfoRetriever()
+WebInfoRetriever::WebInfoRetriever(std::string caFilePath)
+    : _caFilePath(caFilePath)
 {
     if (CURLE_OK == curl_global_init(CURL_GLOBAL_DEFAULT))
     {
@@ -158,6 +159,8 @@ bool WebInfoRetriever::sendHttpRequest(const std::string &url, RequestType type,
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 15L);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+    curl_easy_setopt(curl, CURLOPT_CAINFO, _caFilePath.c_str());
     if (RequestType::HEADER == type) {
         curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
         curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
