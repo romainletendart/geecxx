@@ -22,8 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef GEECXX_TESTS_CONNECTION_TEST_H
-#define GEECXX_TESTS_CONNECTION_TEST_H
+#pragma once
 
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/TestFixture.h>
@@ -54,5 +53,3 @@ public:
 };
 
 }
-
-#endif // GEECXX_TESTS_CONNECTION_TEST_H

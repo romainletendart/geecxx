@@ -22,8 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef GEECXX_CONNECTION_H
-#define GEECXX_CONNECTION_H
+#pragma once
 
 #include <array>
 #include <boost/asio.hpp>
@@ -72,5 +71,3 @@ private:
 };
 
 }
-
-#endif // GEECXX_CONNECTION_H

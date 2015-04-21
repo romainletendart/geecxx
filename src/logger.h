@@ -22,8 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef GEECXX_LOGGER_H_
-#define GEECXX_LOGGER_H_
+#pragma once
 
 #include <mutex>
 #include <string>
@@ -66,5 +65,3 @@ private:
 #define LOG_INFO(message)    geecxx::Logger::getInstance().log(geecxx::LogLevel::INFO, message)
 #define LOG_WARNING(message) geecxx::Logger::getInstance().log(geecxx::LogLevel::WARNING, message)
 #define LOG_ERROR(message)   geecxx::Logger::getInstance().log(geecxx::LogLevel::ERROR, message)
-
-#endif // GEECXX_LOGGER_H_
