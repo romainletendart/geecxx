@@ -106,11 +106,20 @@ WebInfoRetriever::WebInfoRetriever(std::string caFilePath)
 
 std::string WebInfoRetriever::extractTitleFromContent(const std::string &pageContent)
 {
-    size_t titleBegin = stringutils::findNoCase(pageContent, "<title>") + 7;
-    size_t titleEnd = stringutils::findNoCase(pageContent, "</title>");
+    // TODO Use a proper HTML parser to retrieve <title> content
+    // The solution below only works for <title> without any attributes.
+    // It also only works if the first occurence of "<title>" is the actual
+    // title of the HTML document (could be a comment for instance).
+    const std::string titleBeginTag("<title>");
+    const std::string titleEndTag("</title>");
+
+    size_t titleBegin = stringutils::findNoCase(pageContent, titleBeginTag);
+    size_t titleEnd = stringutils::findNoCase(pageContent, titleEndTag);
     if (std::string::npos == titleBegin || std::string::npos == titleEnd) {
         return "";
     }
+
+    titleBegin += titleBeginTag.size();
 
     std::string title = pageContent.substr(titleBegin, titleEnd - titleBegin);
 
